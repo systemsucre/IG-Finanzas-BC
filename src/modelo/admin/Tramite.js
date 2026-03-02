@@ -46,7 +46,7 @@ export class Tramite {
         GROUP BY id_tramite
       ) s ON t.id = s.id_tramite
 
-      WHERE ${id ? ` t.id = ${pool.escape(id)}` : `t.eliminado = 1`}
+      WHERE ${id ? ` t.id = ${pool.escape(id)}` : ``}
       GROUP BY t.id
       ORDER BY t.created_at DESC`;
 

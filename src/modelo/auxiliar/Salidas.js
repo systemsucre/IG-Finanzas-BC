@@ -1,9 +1,10 @@
 import pool from "../bdConfig.js";
 
-import {Tramite} from '../admin/Tramite.js'
-const tramite1 = new Tramite()
-export class Salidas {
+import { Reportes } from '../reportes.js'
+const reportes = new Reportes()
 
+
+export class Salidas {
 
   obtenerSalida = async (id) => {
     try {
@@ -18,7 +19,7 @@ export class Salidas {
 
       return rows;
     } catch (error) {
-      console.error("Error al listar trámites:", error);  
+      console.error("Error al listar trámites:", error);
       throw error;
     }
   };
@@ -56,13 +57,13 @@ export class Salidas {
 
       // Si hay registros, el resultado no será null. 
       // Sumamos 1 para el siguiente correlativo.
-      if (ultRow&&  ultRow.maximo !== null) {
+      if (ultRow && ultRow.maximo !== null) {
         numero = ultRow[0].maximo + 1;
       } else {
         numero = 1;
       }
-
-      const tramite = await tramite1.ObtenerTramite(datos.id_tramite);
+      console.log('Aqui')
+      const tramite = await reportes.ObtenerTramite(datos.id_tramite);
 
       if (tramite && tramite.estado === 1) {
         // 2. Generamos el UUID en la consulta o mediante código
@@ -119,10 +120,10 @@ export class Salidas {
 
       // 2. Ahora validamos el estado del Trámite
       // console.log(id_tramite)
-      const tramite = await tramite1.ObtenerTramite(id_tramite);
+      const tramite = await reportes.ObtenerTramite(id_tramite);
       // console.log(tramite.estado)
 
-      if (!tramite ) return { success: false, msg: "Trámite no encontrado" };
+      if (!tramite) return { success: false, msg: "Trámite no encontrado" };
 
       // VALIDACIÓN LÓGICA: Solo permitir si el trámite está Activo (estado 1)
       if (tramite.estado !== 1) {
@@ -158,7 +159,7 @@ export class Salidas {
     }
   };
 
-  
+
 
   eliminar = async (id) => { // 'id' es el UUID de la salida
     try {
@@ -176,11 +177,11 @@ export class Salidas {
       const id_tramite = salidaActual[0].id_tramite;
 
       // 2. Verificamos el estado del trámite usando 'this.'
-      const tramite = await tramite1.ObtenerTramite(id_tramite);
+      const tramite = await reportes.ObtenerTramite(id_tramite);
 
       console.log(tramite)
 
-      if (tramite &&  tramite.estado === 1) {
+      if (tramite && tramite.estado === 1) {
         // 3. Eliminamos solo si está en estado 1 (Solicitado) o 4 (Rechazado)
         // const sql = `DELETE FROM salidas WHERE id = ? AND (estado = 1 OR estado = 4)`;
         const sql = `DELETE FROM salidas WHERE id = ?`;

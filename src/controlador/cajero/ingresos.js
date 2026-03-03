@@ -12,7 +12,7 @@ const objetoIngreso = new Ingresos();
  */
 rutas.post("/listar-por-tramites", async (req, res) => {
   try {
-    console.log(req.body.id_tramite)
+    // console.log(req.body.id_tramite)
     const { id_tramite } = req.body;
     const resultado = await objetoIngreso.listarPorTramite(id_tramite);
     return res.json({ data: resultado, ok: true });
@@ -21,6 +21,20 @@ rutas.post("/listar-por-tramites", async (req, res) => {
     return res.status(500).json({ ok: false, msg: "Error al listar ingresos del trámite" });
   }
 });
+
+// ENDPOINT: Obtener clientes para el combobox
+rutas.post("/listar-clientes", async (req, res) => {
+  try {
+    const resultado = await objetoIngreso.listarClientesActivos();
+    return res.json({
+      data: resultado,
+      ok: true
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, msg: "Error al cargar lista de clientes" });
+  }
+});
+
 
 
 /**
@@ -43,11 +57,11 @@ rutas.post("/obtener", async (req, res) => {
  */
 rutas.post("/crear", insertar, async (req, res) => {
   try {
-    const { id_tramite, srol, monto, tipo, fecha_ingreso, detalle, usuario, created_at, datosAuditoriaExtra } = req.body;
+    const { id_tramite, id_cliente, srol, monto, tipo, fecha_ingreso, detalle, usuario, created_at, datosAuditoriaExtra } = req.body;
 
     if (srol !== 3) return
     const resultado = await objetoIngreso.crear({
-      id_tramite, monto, tipo, fecha_ingreso, detalle, usuario, created_at,
+      id_tramite, monto, id_cliente, tipo, fecha_ingreso, detalle, usuario, created_at,
     });
 
     if (resultado) {
@@ -73,12 +87,12 @@ rutas.post("/crear", insertar, async (req, res) => {
  */
 rutas.post("/actualizar", actualizar, async (req, res) => {
   try {
-    const { id, monto, srol, tipo, fecha_ingreso, detalle, updated_at, usuario, datosAuditoriaExtra } = req.body;
+    const { id, monto, id_cliente, srol, tipo, fecha_ingreso, detalle, updated_at, usuario, datosAuditoriaExtra } = req.body;
     if (srol !== 3) return
 
     // console.log(id, ' id ingreso controlador')
     const resultado = await objetoIngreso.actualizar(id, {
-      monto, tipo, fecha_ingreso, detalle, updated_at, usuario,
+      monto, tipo, id_cliente, fecha_ingreso, detalle, updated_at, usuario,
     });
 
     if (resultado) {

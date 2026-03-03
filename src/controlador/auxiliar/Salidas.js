@@ -1,12 +1,10 @@
 import { Router } from "express";
 import { registrarAuditoria } from '../../modelo/auditoria.js';
 import { Salidas } from "../../modelo/auxiliar/Salidas.js";
-import { Tramite } from "../../modelo/admin/Tramite.js";
 import { insertar, actualizar } from "../../validacion/auxiliar/Salidas.js";
 
 const rutas = Router();
 const objetoSalida = new Salidas();
-const tramite = new Tramite();
 
 /**
  * 1. LISTAR SALIDAS POR TRÁMITE

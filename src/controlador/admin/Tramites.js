@@ -7,18 +7,6 @@ const rutas = Router();
 const objetoTramite = new Tramite();
 
 
-// ENDPOINT: Obtener clientes para el combobox
-rutas.post("/listar-clientes", async (req, res) => {
-  try {
-    const resultado = await objetoTramite.listarClientesActivos();
-    return res.json({
-      data: resultado,
-      ok: true
-    });
-  } catch (error) {
-    return res.status(500).json({ ok: false, msg: "Error al cargar lista de clientes" });
-  }
-});
 
 // ENDPOINT: Obtener tipos de trámites para el combobox
 rutas.post("/listar-tipo-tramites", async (req, res) => {
@@ -32,7 +20,7 @@ rutas.post("/listar-tipo-tramites", async (req, res) => {
     return res.status(500).json({ ok: false, msg: "Error al cargar lista de tipos" });
   }
 });
-
+  
 
 // ENDPOINT: Obtener tipos de trámites para el combobox
 rutas.post("/obtener", async (req, res) => {
@@ -69,12 +57,11 @@ rutas.post("/listar", async (req, res) => {
 rutas.post("/crear", insertar, async (req, res) => {
   try {
     const {
-      id_cliente,  fecha_ingreso, fecha_finalizacion,
+       fecha_ingreso, fecha_finalizacion,
       id_tipo_tramite, detalle, costo, otros, usuario, fecha_, id_entidadS
     } = req.body;
 
     const datos = {
-      id_cliente,
       fecha_ingreso,
       fecha_finalizacion,
       id_tipo_tramite,
@@ -101,7 +88,7 @@ rutas.post("/crear", insertar, async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      ok: false,
+      ok: false,  
       msg: error.sqlMessage || "Error interno al crear trámite"
     });
   }
@@ -111,13 +98,13 @@ rutas.post("/crear", insertar, async (req, res) => {
 rutas.post("/editar", actualizar, async (req, res) => {
   try {
     const {
-      id, id_cliente,  fecha_ingreso, fecha_finalizacion,
+      id,   fecha_ingreso, fecha_finalizacion,
       id_tipo_tramite, detalle, costo, otros, estado, usuario, fecha_, datosAuditoriaExtra, id_entidadS
     } = req.body;
 
 
     const datos = {
-      id, id_cliente,  fecha_ingreso, fecha_finalizacion,
+      id,   fecha_ingreso, fecha_finalizacion,
       id_tipo_tramite, detalle, costo, otros, estado,
       usuario,id_entidadS,
       modified_at: fecha_

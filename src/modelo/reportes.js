@@ -12,8 +12,6 @@ export class Reportes {
                         t.codigo, 
                         t.detalle, 
                         t.costo, 
-                        CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre, 
-                        t.id_cliente,
                         t.estado, 
                         t.eliminado, 
                         t.fecha_ingreso, 
@@ -29,7 +27,6 @@ export class Reportes {
                         t.fecha_ingreso, t.fecha_finalizacion
 
                     FROM tramites t
-                    INNER JOIN clientes c ON t.id_cliente = c.id
                     INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
 
                     /* Unimos con ingresos (agrupados previamente por trámite para ligereza) */
@@ -47,7 +44,7 @@ export class Reportes {
                         GROUP BY id_tramite
                     ) s ON t.id = s.id_tramite
 
-                    WHERE ${id ? ` t.id = ${pool.escape(id)}` : `t.eliminado = 1 and t.id_entidad = ${pool.escape(id_entidad)}`}
+                    WHERE ${id ? ` t.id = ${pool.escape(id)}` : `t.id_entidad = ${pool.escape(id_entidad)}`}
                     GROUP BY t.id
                     ORDER BY t.created_at DESC`;
 
@@ -65,23 +62,21 @@ export class Reportes {
     ObtenerTramite = async (id) => {
         try {
             const sql = `
-      SELECT 
-          t.id, 
-          t.codigo, 
-          t.fecha_ingreso, 
-          t.fecha_finalizacion, 
-          t.detalle, 
-          t.costo, 
-          t.otros, 
-          t.estado, 
-          t.id_cliente,
-          t.id_tipo_tramite,
-          CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,
-          tt.tipo_tramite AS nombre_tipo_tramite
-      FROM tramites t
-      INNER JOIN clientes c ON t.id_cliente = c.id
-      INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
-      WHERE t.id = ?`; // Filtramos por el ID recibido
+                    SELECT 
+                        t.id, 
+                        t.codigo, 
+                        t.fecha_ingreso, 
+                        t.fecha_finalizacion, 
+                        t.detalle, 
+                        t.costo, 
+                        t.otros, 
+                        t.estado, 
+                        t.id_tipo_tramite,
+                        
+                        tt.tipo_tramite AS nombre_tipo_tramite
+                    FROM tramites t
+                    INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
+                    WHERE t.id = ?`; // Filtramos por el ID recibido
 
             const [rows] = await pool.query(sql, [id]);
 
@@ -97,15 +92,19 @@ export class Reportes {
     /**
    * Listar ingresos vinculados a un trámite específico
    */
-    getDataToPDF = async (idTramite) => {
+    getDataToPDFINgresos = async (idTramite) => {
         try {
             const sql = `
         SELECT 
           i.*, 
           t.codigo AS codigo_tramite,
+          i.id_cliente,
+          CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,
           CONCAT(u.nombre, ' ', u.ap1) AS usuario_nombre, u.username, u.id as id_usuario   
         FROM ingresos i
         INNER JOIN tramites t ON i.id_tramite = t.id
+        INNER JOIN clientes c ON i.id_cliente = c.id
+
         LEFT JOIN usuarios u ON i.usuario = u.id
         WHERE i.id_tramite = ?
         ORDER BY i.fecha_ingreso DESC
@@ -121,7 +120,7 @@ export class Reportes {
 
 
     // csript para PDF
-    getDatatoPdf = async (id) => {
+    getDatatoPdfSalidas = async (id) => {
         try {
             const sql = `
         SELECT s.*, t.codigo AS codigo_tramite, concat(u.nombre ,' ', u.ap1) as usuario_nombre
@@ -161,16 +160,22 @@ export class Reportes {
 
     // Reporte de Ingresos entre fechas
     getIngresosExcel = async (id, desde, hasta) => {
+
         const sql = `
         SELECT i.*, t.codigo AS codigo_tramite, t.detalle as tramite_detalle,
+         i.id_cliente,
+          CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,
         CONCAT(u.nombre, ' ', u.ap1) as usuario_nombre
         FROM ingresos i
         INNER JOIN tramites t ON i.id_tramite = t.id
+        INNER JOIN clientes c ON i.id_cliente = c.id
         LEFT JOIN usuarios u ON i.usuario = u.id
         WHERE i.id_tramite = ${pool.escape(id)}
         AND i.created_at BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)}
         ORDER BY i.numero ASC`;
         const [rows] = await pool.query(sql);
+
+        // console.log(rows)
         return rows;
     };
 
@@ -185,8 +190,6 @@ export class Reportes {
                 t.codigo, 
                 t.detalle, 
                 t.costo, 
-                CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre, 
-                t.id_cliente,
                 t.estado, 
                 t.eliminado, 
                 t.fecha_ingreso, 
@@ -201,7 +204,6 @@ export class Reportes {
                 (IFNULL(i.monto_total, 0) - IFNULL(s.monto_total, 0)) AS saldoDisponible
 
             FROM tramites t
-            INNER JOIN clientes c ON t.id_cliente = c.id
             INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
 
             /* Subconsulta de Ingresos con filtro de fecha_ingreso */

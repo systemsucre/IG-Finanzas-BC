@@ -4,111 +4,96 @@ export class Tramite {
 
 
 
-  listar = async (id) => {
-    try {
-      const sql = `
-      SELECT 
-        t.id, 
-        t.codigo, 
-        t.detalle, 
-        t.costo, 
-        CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre, 
-        t.id_cliente,
-        t.estado, 
-        t.eliminado, 
-        t.fecha_ingreso, 
-        t.fecha_finalizacion,
-        tt.tipo_tramite AS nombre_tipo_tramite,
+  // listar = async (id) => {
+  //   try {
+  //     const sql = `
+  //     SELECT 
+  //       t.id, 
+  //       t.codigo, 
+  //       t.detalle, 
+  //       t.costo, 
+  //       CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre, 
+  //       t.id_cliente,
+  //       t.estado, 
+  //       t.eliminado, 
+  //       t.fecha_ingreso, 
+  //       t.fecha_finalizacion,
+  //       tt.tipo_tramite AS nombre_tipo_tramite,
 
-        /* Mantenemos los nombres de tu UI, pero con lógica de Ingresos Reales */
-        IFNULL(SUM(DISTINCT i.monto_total), 0) AS total_ingresos, -- Informativo
-        IFNULL(SUM(DISTINCT s.monto_total), 0) AS total_gastos,
+  //       /* Mantenemos los nombres de tu UI, pero con lógica de Ingresos Reales */
+  //       IFNULL(SUM(DISTINCT i.monto_total), 0) AS total_ingresos, -- Informativo
+  //       IFNULL(SUM(DISTINCT s.monto_total), 0) AS total_gastos, 
         
-        /* El saldo real: Suma Ingresos - Suma Salidas */
-        (IFNULL(SUM(DISTINCT i.monto_total), 0) - IFNULL(SUM(DISTINCT s.monto_total), 0)) AS saldoDisponible
+  //       /* El saldo real: Suma Ingresos - Suma Salidas */
+  //       (IFNULL(SUM(DISTINCT i.monto_total), 0) - IFNULL(SUM(DISTINCT s.monto_total), 0)) AS saldoDisponible
 
-      FROM tramites t
-      INNER JOIN clientes c ON t.id_cliente = c.id
-      INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
+  //     FROM tramites t
+  //     INNER JOIN clientes c ON t.id_cliente = c.id
+  //     INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
 
-      /* Unimos con ingresos (agrupados previamente por trámite para ligereza) */
-      LEFT JOIN (
-        SELECT id_tramite, SUM(monto) as monto_total 
-        FROM ingresos 
-        GROUP BY id_tramite
-      ) i ON t.id = i.id_tramite
+  //     /* Unimos con ingresos (agrupados previamente por trámite para ligereza) */
+  //     LEFT JOIN (
+  //       SELECT id_tramite, SUM(monto) as monto_total 
+  //       FROM ingresos 
+  //       GROUP BY id_tramite
+  //     ) i ON t.id = i.id_tramite
+ 
+  //     /* Unimos con salidas (agrupados para evitar duplicar filas en el JOIN) */
+  //     LEFT JOIN (
+  //       SELECT id_tramite, SUM(monto) as monto_total 
+  //       FROM salidas 
+  //       WHERE estado = 3 
+  //       GROUP BY id_tramite
+  //     ) s ON t.id = s.id_tramite
 
-      /* Unimos con salidas (agrupados para evitar duplicar filas en el JOIN) */
-      LEFT JOIN (
-        SELECT id_tramite, SUM(monto) as monto_total 
-        FROM salidas 
-        WHERE estado = 3 
-        GROUP BY id_tramite
-      ) s ON t.id = s.id_tramite
+  //     WHERE ${id ? ` t.id = ${pool.escape(id)}` : ``}
+  //     GROUP BY t.id
+  //     ORDER BY t.created_at DESC`;
 
-      WHERE ${id ? ` t.id = ${pool.escape(id)}` : ``}
-      GROUP BY t.id
-      ORDER BY t.created_at DESC`;
-
-      const [rows] = await pool.query(sql);
-      return rows;
-    } catch (error) {
-      console.error("Error al listar trámites:", error);
-      throw error;
-    }
-  };
+  //     const [rows] = await pool.query(sql);
 
 
-  ObtenerTramite = async (id) => {
-    try {
-      const sql = `
-      SELECT 
-          t.id, 
-          t.codigo, 
-          t.fecha_ingreso, 
-          t.fecha_finalizacion, 
-          t.detalle, 
-          t.costo, 
-          t.otros, 
-          t.estado, 
-          t.id_cliente,
-          t.id_tipo_tramite,
-          CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,
-          tt.tipo_tramite AS nombre_tipo_tramite
-      FROM tramites t
-      INNER JOIN clientes c ON t.id_cliente = c.id
-      INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
-      WHERE t.id = ?`; // Filtramos por el ID recibido
-
-      const [rows] = await pool.query(sql, [id]);
-
-      // Retornamos solo el objeto encontrado, no la lista completa
-      return rows.length > 0 ? rows[0] : null;
-
-    } catch (error) {
-      console.error("Error al obtener el trámite por ID:", error);
-      throw error;
-    }
-  };
+  //     return rows;
+  //   } catch (error) {
+  //     console.error("Error al listar trámites:", error);
+  //     throw error;
+  //   }
+  // };
 
 
-  /**
-   * Obtiene lista simplificada de clientes activos para selects
-   */
-  listarClientesActivos = async () => {
-    try {
-      const sql = `
-      SELECT id as value, CONCAT(nombre, ' ', ap1, ' ', IFNULL(ap2, '')) as label 
-      FROM clientes 
-      WHERE estado = 1 
-      ORDER BY nombre ASC`;
-      const [rows] = await pool.query(sql);
-      return rows;
-    } catch (error) {
-      console.error("Error al listar clientes auxiliares:", error);
-      throw error;
-    }
-  };
+  // ObtenerTramite = async (id) => {
+  //   try {
+  //     const sql = `
+  //     SELECT 
+  //         t.id, 
+  //         t.codigo, 
+  //         t.fecha_ingreso, 
+  //         t.fecha_finalizacion, 
+  //         t.detalle, 
+  //         t.costo, 
+  //         t.otros, 
+  //         t.estado, 
+  //         t.id_cliente,
+  //         t.id_tipo_tramite,
+  //         CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,
+  //         tt.tipo_tramite AS nombre_tipo_tramite
+  //     FROM tramites t
+  //     INNER JOIN clientes c ON t.id_cliente = c.id
+  //     INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
+  //     WHERE t.id = ?`; // Filtramos por el ID recibido
+
+  //     const [rows] = await pool.query(sql, [id]);
+
+  //     // Retornamos solo el objeto encontrado, no la lista completa
+  //     return rows.length > 0 ? rows[0] : null;
+
+  //   } catch (error) {
+  //     console.error("Error al obtener el trámite por ID:", error);
+  //     throw error;
+  //   }
+  // };
+
+
 
   /**
    * Obtiene lista simplificada de tipos de trámites activos para selects
@@ -166,14 +151,13 @@ export class Tramite {
       // 4. Inserción en la base de datos
       const sql = `
             INSERT INTO tramites (
-                id, id_cliente, codigo, fecha_ingreso, fecha_finalizacion, 
+                id,  codigo, fecha_ingreso, fecha_finalizacion, 
                 id_tipo_tramite, detalle, costo, otros, estado, 
                 usuario, id_entidad, created_at, eliminado
-            ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 1)
+            ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 1)
         `;
 
       const valores = [
-        datos.id_cliente,
         codigoFinal,
         datos.fecha_ingreso,
         datos.fecha_finalizacion,
@@ -205,7 +189,6 @@ export class Tramite {
   actualizar = async (datos) => {
     try {
       const sql = `UPDATE tramites SET 
-                   id_cliente = ${pool.escape(datos.id_cliente)},
                    fecha_ingreso = ${pool.escape(datos.fecha_ingreso)},
                    fecha_finalizacion = ${pool.escape(datos.fecha_finalizacion)},
                    id_tipo_tramite = ${pool.escape(datos.id_tipo_tramite)},

@@ -14,6 +14,7 @@ export const insertar = [
     .exists().withMessage("El monto es obligatorio")
     .isFloat({ min: 0.01 }).withMessage("El monto debe ser un número positivo")
     .toFloat(),
+  check("id_cliente").optional().isNumeric(),
 
   // tipo del ingreso
   check("tipo")
@@ -52,6 +53,13 @@ export const actualizar = [
   check("id")
     .exists().withMessage("El ID es requerido")
     .isUUID().withMessage("ID no válido"),
+
+  // Relación con Cliente
+  check("id_cliente")
+    .isNumeric()
+    .withMessage("Debe seleccionar un cliente válido")
+    .exists()
+    .notEmpty(),
 
 
   check("id_tramite")

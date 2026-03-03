@@ -34,7 +34,7 @@ rutas.post("/obtener-tramite", async (req, res) => {
 
 rutas.post("/ingresos", async (req, res) => {
   try {
-    const resultado = await reportes.getDataToPDF(req.body.id);
+    const resultado = await reportes.getDataToPDFINgresos(req.body.id);
     // console.log(resultado, req.body.id)
     return res.json({ data: resultado, ok: true });
   } catch (error) {
@@ -44,7 +44,7 @@ rutas.post("/ingresos", async (req, res) => {
 
 rutas.post("/salidas", async (req, res) => {
   try {
-    const resultado = await reportes.getDatatoPdf(req.body.id);
+    const resultado = await reportes.getDatatoPdfSalidas(req.body.id);
     // console.log(resultado, req.body.id)
     return res.json({ data: resultado, ok: true });
   } catch (error) {
@@ -62,6 +62,7 @@ rutas.post("/ingresos-excel", async (req, res) => {
     // console.log(resultado, req.body.id)
     return res.json({ data: resultado, ok: true });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
   }
 });

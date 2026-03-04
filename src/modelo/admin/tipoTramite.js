@@ -82,7 +82,7 @@ actualizar = async (datos) => {
         ? "El nombre y el código ya existen en otros registros." 
         : esCodigo 
           ? "El código ya está registrado." 
-          : "El nombre de tipo de trámite ya existe.";
+          : "El nombre de Categoria de caja ya existe.";
 
       return { existe: 1, mensaje };
     }
@@ -101,7 +101,7 @@ actualizar = async (datos) => {
     return res.affectedRows > 0 ? await this.listar() : { error: 1 };
 
   } catch (error) {
-    console.error("Error al actualizar tipo de trámite:", error);
+    console.error("Error al actualizar Categoria de caja:", error);
     throw error;
   }
 };

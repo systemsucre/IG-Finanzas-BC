@@ -95,4 +95,18 @@ rutas.post("/reporte-consolidado", async (req, res) => {
   }
 });
 
+
+  rutas.post("/dash-1", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+    const { desde, hasta, estado } = req.body
+
+    const resultado = await reportes.getStatsMensuales(desde, hasta, estado);
+    return res.json({ data: resultado, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
+  }
+});
+
 export default rutas;

@@ -46,13 +46,13 @@ rutas.post("/crear", validarTramite, async (req, res) => {
     const resultado = await tramites.insertar(datos);
 
     if (resultado.existe === 1) {
-      return res.json({ ok: false, msg: "Este tipo de caja ya existe" });
+      return res.json({ ok: false, msg: "Esta categoria de caja ya existe" });
     }
 
     return res.json({
       data: resultado,
       ok: true,
-      msg: "Tipo de caja registrado correctamente",
+      msg: "Categoria de caja registrado correctamente",
     });
   } catch (error) {
     return res.status(500).json({ ok: false, msg: error.sqlMessage || "Error en el servidor" });
@@ -75,7 +75,7 @@ rutas.post("/editar", validarTramite, async (req, res) => {
     const resultado = await tramites.actualizar(datos);
 
     if (resultado.existe === 1)
-      return res.json({ ok: false, msg: "Ya existe otro tipo de caja con ese nombre" });
+      return res.json({ ok: false, msg: "Ya existe otra categoria de caja con ese nombre" });
 
     if (resultado.error === 1)
       return res.json({ ok: false, msg: "No se pudo actualizar el tipo de caja" });
@@ -83,7 +83,7 @@ rutas.post("/editar", validarTramite, async (req, res) => {
     return res.json({
       data: resultado,
       ok: true,
-      msg: "Tipo de caja actualizado correctamente",
+      msg: "Categoria de caja actualizado correctamente",
     });
   } catch (error) {
     return res.status(500).json({ ok: false, msg: error.sqlMessage });
@@ -105,7 +105,7 @@ rutas.post("/cambiar-estado", async (req, res) => {
     const resultado = await tramites.eliminarLogico(datos);
 
     if (resultado) {
-      const msg = (estado == 1) ? "Tipo de caja activado" : "Tipo de caja desactivado";
+      const msg = (estado == 1) ? "Categoria de caja activado" : "Categoria de caja desactivado";
       return res.json({ ok: true, msg });
     } else {
       return res.json({ ok: false, msg: "No se pudo cambiar el estado" });

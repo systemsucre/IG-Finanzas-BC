@@ -13,7 +13,7 @@ import {
 
 // MI PERFIL
 // OPERATIVO
-import miPerfil from "../controlador/miPerfil.js"; 
+import miPerfil from "../controlador/miPerfil.js";
 
 // Admiministrador
 import usuario from "../controlador/admin/usuario.js";
@@ -21,14 +21,16 @@ import clientes from "../controlador/admin/clientes.js";
 import tipoTramite from "../controlador/admin/tipoTramites.js";
 import Tramite from "../controlador/admin/Tramites.js";
 
+//Auxiliar
+import salidas from "../controlador/auxiliar/Salidas.js";
 
-// MOVIMIENTOS
-import salidas from "../controlador/movimientos/Salidas.js";
-import Ingresos from '../controlador/movimientos/ingresos.js'
-import boleta from '../controlador/movimientos/boleta.js'
+// GERENTE
+import SalidasGerente from '../controlador/gerente/Salidas.js'
 
-import honorarios from '../controlador/movimientos/honorarios.js'
 
+// CAJERO
+import SalidaCajero from '../controlador/cajero/Salidas.js'
+import IngresosCajero from '../controlador/cajero/ingresos.js'
 
 //COMUUN
 import comuun from '../controlador/comun.js'
@@ -41,6 +43,7 @@ const rutas = express();
 
 // +*********************************************************** login ****************************************
 
+// ruta de autentidicacion
 rutas.get("/", async (req, res) => {
   try {
     // console.log(req.query.viva)
@@ -194,21 +197,60 @@ verificacion.use((req, res, next) => {
 });
 
 const admin = (req, res, next) => {
-  if (parseInt(req.body.srol) === 1) {
-    // console.log(req.body.numero, 'numero rol')
+  // console.log(req.body.srol)
+  if (parseInt((req.body.srol)) || req.body.all_permisionS) {
     next();
-  } else
+  } else {
+    console.log(parseInt((req.body.srol) === 1) || req.body.all_permisionS, ' numero rol desact')
+
     return res.json({
       ok: false,
       sesion: false,
       msg: "El Servidor no puede identificar su autencidad, cierre sesion y vuelva a intentar MIDLEWARE ADMIN",
     });
+  }
+};
+
+const auxiliar = (req, res, next) => {
+  // console.log(req.body.srol, ' dato desde middleware rol')
+  if ((parseInt(req.body.srol) === 4 || parseInt(req.body.srol) === 3 || parseInt(req.body.srol) === 2) || req.body.all_permisionS) {
+    next();
+  } else
+    return res.json({
+      ok: false,
+      sesion: false,
+      msg: "El Servidor no puede identificar su autencidad, cierre sesion y vuelva a intentar MEDLEWARE AUXILIAR",
+    });
 };
 
 
+const gerente = (req, res, next) => {
+  // console.log(req.body.srol, ' dato desde middleware rol')
+  if ((parseInt(req.body.srol)) === 2 || req.body.all_permisionS) {
+    next();
+  } else
+    return res.json({
+      ok: false,
+      sesion: false,
+      msg: "El Servidor no puede identificar su autencidad, cierre sesion y vuelva a intentar MEDLEWARE AUXILIAR",
+    });
+};
+
+
+const cajero = (req, res, next) => {
+  // console.log(req.body.srol, ' dato desde middleware rol')
+  if ((parseInt(req.body.srol) === 2 || parseInt(req.body.srol) === 3) || req.body.all_permisionS) {
+    next();
+  } else
+    return res.json({
+      ok: false,
+      sesion: false,
+      msg: "El Servidor no puede identificar su autencidad, cierre sesion y vuelva a intentar MEDLEWARE AUXILIAR",
+    });
+};
 
 const AdminGerenteCajero = (req, res, next) => {
-  if (parseInt(req.body.srol) === 2 || parseInt(req.body.srol) === 3 || parseInt(req.body.srol) === 1) {
+  if ((parseInt(req.body.srol) === 2 || parseInt(req.body.srol) === 3 || parseInt(req.body.srol) === 1) || req.body.all_permisionS) {
     // console.log(req.body.numero, 'numero rol')
     next();
   } else
@@ -226,16 +268,18 @@ rutas.use("/clientes", verificacion, AdminGerenteCajero, clientes);
 rutas.use("/tipo-tramites", verificacion, admin, tipoTramite);
 rutas.use("/tramites", verificacion, AdminGerenteCajero, Tramite);
 
-// MOVIMIENTOS
-rutas.use("/salidas", verificacion,  salidas)
-rutas.use('/ingresos', verificacion,  Ingresos) 
-rutas.use('/boletas', verificacion,  boleta) 
+// AUXILIAR
+rutas.use("/salidas", verificacion, auxiliar, salidas);
 
-rutas.use('/honorarios', verificacion, AdminGerenteCajero,  honorarios) 
+// GERENTE
+rutas.use('/salidas-gerente', verificacion, gerente, SalidasGerente)
 
+// CAJERO
+rutas.use('/salidas-cajero', verificacion, cajero, SalidaCajero)
+rutas.use('/ingresos-cajero', verificacion, AdminGerenteCajero, IngresosCajero)
 
 // comuun
-rutas.use('/comuun', verificacion,  comuun)
+rutas.use('/comuun', verificacion, comuun)
 
 
 rutas.use("/miPerfil", verificacion, miPerfil);

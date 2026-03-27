@@ -39,9 +39,9 @@ export const registrarAuditoria = async (req, { usuario_id, tabla, accion, detal
             idioma: req.headers['accept-language']?.split(',')[0] || 'Desconocido',
 
             // --- Info del Frontend (si la envías en el body) ---
-            resolucion: datosAuditoriaExtra?.screen_size,
-            vistas_previas: datosAuditoriaExtra?.vistas_previas,
-            user_timezone: datosAuditoriaExtra?.user_timezone
+            resolucion: datosAuditoriaExtra.screen_size,
+            vistas_previas: datosAuditoriaExtra.vistas_previas,
+            user_timezone: datosAuditoriaExtra.user_timezone
         };
 
         //     Tips Adicionales:

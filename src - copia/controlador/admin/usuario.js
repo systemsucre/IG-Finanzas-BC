@@ -53,7 +53,7 @@ rutas.post("/listar-roles", async (req, res) => {
 rutas.post("/crear", insertar, async (req, res) => {
   try {
     const {
-      id_rol, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, fecha_, usuario, datosAuditoriaExtra
+      id_rol, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, id_entidadS
     } = req.body;
 
     // Mapeamos los campos a la estructura de la base de datos
@@ -68,7 +68,7 @@ rutas.post("/crear", insertar, async (req, res) => {
       username,
       password, // Recuerda encriptar con bcrypt si es necesario
       estado: estado || 1,
-      fecha_
+      id_entidad:id_entidadS
     };
 
     const resultado = await usuarios.insertar(datos);
@@ -79,14 +79,7 @@ rutas.post("/crear", insertar, async (req, res) => {
     if (resultado.error === 4) {
       return res.json({ ok: false, msg: "El nombre de usuario ya existe" });
     }
-    registrarAuditoria(req, {
-      usuario_id: usuario,
-      accion: "CREACION",
-      tabla: "usuarios",
-      detalle: { datos },
-      datosAuditoriaExtra,
-      fecha: fecha_
-    });
+
     return res.json({
       data: resultado,
       ok: true,
@@ -102,11 +95,11 @@ rutas.post("/crear", insertar, async (req, res) => {
 rutas.post("/editar", actualizar, async (req, res) => {
   try {
     const {
-      id, id_rol, usuario, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, fecha_, datosAuditoriaExtra
+      id, id_rol, usuario, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, fecha_, id_entidadS
     } = req.body;
 
     const datos = {
-      id, id_rol, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, usuario, fecha_
+      id, id_rol, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, usuario, fecha_, id_entidadS
     };
 
     const resultado = await usuarios.actualizar(datos);
@@ -117,14 +110,7 @@ rutas.post("/editar", actualizar, async (req, res) => {
       return res.json({ ok: false, msg: "El C.I. ya está registrado por otro usuario" });
     if (resultado.error === 1)
       return res.json({ ok: false, msg: "No se realizaron cambios o el usuario no existe" });
-    registrarAuditoria(req, {
-      usuario_id: usuario,
-      accion: "edicion",
-      tabla: "usuarios",
-      detalle: { datos },
-      datosAuditoriaExtra,
-      fecha: fecha_
-    });
+
     return res.json({
       data: resultado,
       ok: true,
@@ -139,21 +125,13 @@ rutas.post("/editar", actualizar, async (req, res) => {
 
 rutas.post("/cambiar-estado", async (req, res) => {
   try {
-    const { id, estado, usuario, fecha_, datosAuditoriaExtra } = req.body;
+    const { id, estado, usuario, fecha_ } = req.body;
 
     const datos = { id, estado: estado == 1 ? 1 : 0, usuario, fecha_ };
     const resultado = await usuarios.eliminarLogico(datos);
 
     if (resultado) {
       const msg = (estado == 1) ? "Usuario activado" : "Usuario desactivado";
-      registrarAuditoria(req, {
-        usuario_id: usuario,
-        accion: "ca,biar estado",
-        tabla: "usuarios",
-        detalle: { datos },
-        datosAuditoriaExtra,
-        fecha: fecha_
-      });
       return res.json({ ok: true, msg });
     } else {
       return res.json({ ok: false, msg: "No se pudo cambiar el estado" });

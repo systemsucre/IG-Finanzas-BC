@@ -7,18 +7,6 @@ const rutas = Router();
 const objetoTramite = new Tramite();
 
 
-// ENDPOINT: Obtener clientes para el combobox
-rutas.post("/listar-clientes", async (req, res) => {
-  try {
-    const resultado = await objetoTramite.listarClientesActivos();
-    return res.json({
-      data: resultado,
-      ok: true
-    });
-  } catch (error) {
-    return res.status(500).json({ ok: false, msg: "Error al cargar lista de clientes" });
-  }
-});
 
 // ENDPOINT: Obtener tipos de trámites para el combobox
 rutas.post("/listar-tipo-tramites", async (req, res) => {
@@ -32,7 +20,7 @@ rutas.post("/listar-tipo-tramites", async (req, res) => {
     return res.status(500).json({ ok: false, msg: "Error al cargar lista de tipos" });
   }
 });
-
+  
 
 // ENDPOINT: Obtener tipos de trámites para el combobox
 rutas.post("/obtener", async (req, res) => {
@@ -69,12 +57,11 @@ rutas.post("/listar", async (req, res) => {
 rutas.post("/crear", insertar, async (req, res) => {
   try {
     const {
-      id_cliente, fecha_ingreso, fecha_finalizacion,
-      id_tipo_tramite, detalle, costo, otros, usuario, fecha_
+       fecha_ingreso, fecha_finalizacion,
+      id_tipo_tramite, detalle, costo, otros, usuario, fecha_, id_entidadS
     } = req.body;
 
     const datos = {
-      id_cliente,
       fecha_ingreso,
       fecha_finalizacion,
       id_tipo_tramite,
@@ -83,25 +70,25 @@ rutas.post("/crear", insertar, async (req, res) => {
       otros: otros || '',
       estado: 1, // 1: En curso
       usuario,
+      id_entidadS,
       created_at: fecha_ // Fecha enviada desde el frontend
     };
 
     const resultado = await objetoTramite.insertar(datos);
-    if (resultado.affectedRows > 0)
-      return res.json({
-        data: resultado.codigo,
-        ok: true,
-        msg: "Trámite aperturado correctamente",
-      });
-    else return res.json({
-      data: resultado.codigo,
-      ok: false,
-      msg: "Trámite no aperturado",
+
+    if (resultado.existe === 1) {
+      return res.json({ ok: false, msg: "El código de caja ya se encuentra registrado" });
+    }
+
+    return res.json({
+      data: resultado,
+      ok: true,
+      msg: "Caja aperturado correctamente",
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      ok: false,
+      ok: false,  
       msg: error.sqlMessage || "Error interno al crear trámite"
     });
   }
@@ -111,15 +98,15 @@ rutas.post("/crear", insertar, async (req, res) => {
 rutas.post("/editar", actualizar, async (req, res) => {
   try {
     const {
-      id, id_cliente,  fecha_ingreso, fecha_finalizacion,
-      id_tipo_tramite, detalle, costo, otros, estado, usuario, fecha_, datosAuditoriaExtra
+      id,   fecha_ingreso, fecha_finalizacion,
+      id_tipo_tramite, detalle, costo, otros, estado, usuario, fecha_, datosAuditoriaExtra, id_entidadS
     } = req.body;
 
 
     const datos = {
-      id, id_cliente, fecha_ingreso, fecha_finalizacion,
+      id,   fecha_ingreso, fecha_finalizacion,
       id_tipo_tramite, detalle, costo, otros, estado,
-      usuario,
+      usuario,id_entidadS,
       modified_at: fecha_
     };
 
@@ -128,7 +115,7 @@ rutas.post("/editar", actualizar, async (req, res) => {
     const resultado = await objetoTramite.actualizar(datos);
 
     if (resultado.error === 1)
-      return res.json({ ok: false, msg: "No se encontraron cambios o el trámite no existe" });
+      return res.json({ ok: false, msg: "No se encontraron cambios o la caja no existe" });
 
     // --- GUARDAR EN AUDITORÍA ---
     // Aquí usamos la info que capturamos arriba
@@ -143,7 +130,7 @@ rutas.post("/editar", actualizar, async (req, res) => {
     return res.json({
       data: resultado,
       ok: true,
-      msg: "Información del trámite actualizada",
+      msg: "Información del caja actualizada",
     });
   } catch (error) {
     console.error(error);
@@ -162,20 +149,20 @@ rutas.post("/eliminar-logica", async (req, res) => {
     const resultado = await objetoTramite.eliminar(datos);
 
     if (resultado) {
-      const msg = (estado == 1) ? "Tramite activado" : "Tramite eliminado";
+      const msg = (estado == 1) ? "caja activado" : "caja eliminado";
 
       // --- GUARDAR EN AUDITORÍA ---
       // Aquí usamos la info que capturamos arriba
       registrarAuditoria(req, {
         usuario_id: req.body.usuario, // El ID que viene del frontend
-        accion: (estado == 1) ? "Tramite activado" : "Tramite eliminado",
+        accion: (estado == 1) ? "Caja activado" : "Caja eliminado",
         tabla: 'tramites',
         detalle: datos, // Datos que se enviaron
         datosAuditoriaExtra, fecha: fecha_
       });
       return res.json({ ok: true, msg });
     } else {
-      return res.json({ ok: false, msg: "No se pudo cambiar el estado del cliente" });
+      return res.json({ ok: false, msg: "No se pudo cambiar el estado de caja" });
     }
   } catch (error) {
     return res.json({ error: 500, msg: error.sqlMessage });

@@ -11,7 +11,7 @@ const reportes = new Reportes();
 rutas.post("/listar-tramites", async (req, res) => {
   // console.log('usuaio erlinda')
   try {
-    const resultado = await reportes.tramites(req.body.id);
+    const resultado = await reportes.tramites(req.body.id_entidadS, req.body.id);  
     return res.json({ data: resultado, ok: true });
   } catch (error) {
     console.log(error)
@@ -34,7 +34,7 @@ rutas.post("/obtener-tramite", async (req, res) => {
 
 rutas.post("/ingresos", async (req, res) => {
   try {
-    const resultado = await reportes.getDataToIngresoPDF(req.body.id);
+    const resultado = await reportes.getDataToPDFINgresos(req.body.id);
     // console.log(resultado, req.body.id)
     return res.json({ data: resultado, ok: true });
   } catch (error) {
@@ -44,7 +44,7 @@ rutas.post("/ingresos", async (req, res) => {
 
 rutas.post("/salidas", async (req, res) => {
   try {
-    const resultado = await reportes.getDatatoSalidaPdf(req.body.id);  
+    const resultado = await reportes.getDatatoPdfSalidas(req.body.id);
     // console.log(resultado, req.body.id)
     return res.json({ data: resultado, ok: true });
   } catch (error) {
@@ -56,9 +56,8 @@ rutas.post("/salidas", async (req, res) => {
 
 rutas.post("/ingresos-excel", async (req, res) => {
   try {
-    const { id, desde, hasta, srol } = req.body
-    console.log(srol)
-    if (srol === 4) return res.json({ msg: 'Error', ok: false });
+    const { id, desde, hasta, usuario } = req.body
+    if (usuario === 4) return res.json({ msg: 'Error', ok: false });
     const resultado = await reportes.getIngresosExcel(id, desde, hasta);
     // console.log(resultado, req.body.id)
     return res.json({ data: resultado, ok: true });
@@ -89,6 +88,20 @@ rutas.post("/reporte-consolidado", async (req, res) => {
     const { desde, hasta, estado } = req.body
 
     const resultado = await reportes.reportaConsolidado(desde, hasta, estado);
+    return res.json({ data: resultado, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
+  }
+});
+
+
+  rutas.post("/stats-mensuales", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+    const { desde, hasta, estado } = req.body
+
+    const resultado = await reportes.getStatsMensuales(desde, hasta, estado);
     return res.json({ data: resultado, ok: true });
   } catch (error) {
     console.log(error)

@@ -13,7 +13,7 @@ export const registrarAuditoria = async (req, { usuario_id, tabla, accion, detal
         //1. 
         // Manejo de IP (soporta proxies como Nginx)
         let ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-        if (ip.includes('::1')) ip = '127.0.0.1';
+        if (ip?.includes('::1')) ip = '127.0.0.1';
 
         // Geolocalización
         const geo = geoip.lookup(ip);

@@ -50,7 +50,7 @@ rutas.post("/listar-roles", async (req, res) => {
 });
 
 
-rutas.post("/crear", insertar, async (req, res) => {
+rutas.post("/crear", insertar, async (req, res) => {  
   try {
     const {
       id_rol, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, id_entidadS

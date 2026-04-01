@@ -4,7 +4,7 @@ export class Reportes {
 
 
 
-    tramites = async (id) => {
+    tramites = async (id, entidad) => {
         try {
             const sql = `
                     SELECT
@@ -47,11 +47,11 @@ export class Reportes {
                         GROUP BY id_tramite
                     ) s ON t.id = s.id_tramite
 
-                    WHERE ${id ? ` t.id = ${pool.escape(id)}` : `1=1`}
+                    WHERE ${id ? ` t.id = ${pool.escape(id)}` : `1=1`} and t.id_entidad = ?
                     GROUP BY t.id
                     ORDER BY t.numero DESC`;
 
-            const [rows] = await pool.query(sql);
+            const [rows] = await pool.query(sql, [entidad]);
 
             // console.log(rows, ' tramites')
             return rows;
@@ -65,20 +65,20 @@ export class Reportes {
     ObtenerTramite = async (id) => {
         try {
             const sql = `
-      SELECT 
-          t.id, 
-          t.codigo, t.numero,
-          t.fecha_ingreso, 
-          t.fecha_finalizacion, 
-          t.detalle, 
-          t.costo, 
-          t.otros, 
-          t.estado, 
-          t.id_tipo_tramite,
-          tt.tipo_tramite AS nombre_tipo_tramite
-      FROM tramites t
-      INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
-      WHERE t.id = ?`; // Filtramos por el ID recibido
+                SELECT 
+                    t.id, 
+                    t.codigo, t.numero,
+                    t.fecha_ingreso, 
+                    t.fecha_finalizacion, 
+                    t.detalle, 
+                    t.costo, 
+                    t.otros, 
+                    t.estado, 
+                    t.id_tipo_tramite,
+                    tt.tipo_tramite AS nombre_tipo_tramite
+                FROM tramites t
+                INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
+                WHERE t.id = ?`; // Filtramos por el ID recibido
 
             const [rows] = await pool.query(sql, [id]);
 
@@ -145,7 +145,7 @@ export class Reportes {
     // Reporte de Salidas entre fechas
     getSalidasExcel = async (id, desde, hasta) => {
         const sql = `
-        SELECT s.*, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle, 
+        SELECT s.*, s.fecha_solicitud as fecha, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle, s.codigo_boleta,
         CONCAT(u.nombre, ' ', u.ap1) as usuario_nombre
         FROM salidas s
         INNER JOIN tramites t ON s.id_tramite = t.id
@@ -158,15 +158,15 @@ export class Reportes {
         return rows;
     };
 
-                        // INNER JOIN clientes c ON t.id_cliente = c.id
-                      
-                        // CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,    t.id_cliente,
+    // INNER JOIN clientes c ON t.id_cliente = c.id
+
+    // CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,    t.id_cliente,
 
 
     // Reporte de Ingresos entre fechas
     getIngresosExcel = async (id, desde, hasta) => {
         const sql = `
-        SELECT i.*, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle,
+        SELECT i.*, i.fecha_ingreso as fecha, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle,
         CONCAT(u.nombre, ' ', u.ap1) as usuario_nombre,
          CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre
         FROM ingresos i
@@ -181,7 +181,7 @@ export class Reportes {
     };
 
 
-    reportaConsolidado = async (desde, hasta, estado) => {
+    reportaConsolidado = async (desde, hasta, estado, entidad) => {
         try {
             const sql = `
             SELECT
@@ -228,7 +228,7 @@ export class Reportes {
                 GROUP BY id_tramite
             ) s ON t.id = s.id_tramite
 
-            WHERE ${estado === 4 ? '' : `t.estado = ${pool.escape(estado)} and `} t.eliminado = 1
+            WHERE ${estado === 4 ? '' : `t.estado = ${pool.escape(estado)} and `} t.eliminado = 1 and t.id_entidad = ${pool.escape(entidad)}
             GROUP BY t.id
             ORDER BY t.created_at DESC`;
 

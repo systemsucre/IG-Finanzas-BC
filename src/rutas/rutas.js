@@ -53,7 +53,7 @@ rutas.get("/", async (req, res) => {
           e.nombre_corto as entidad, 
           UPPER(r.rol) as rol,  
           r.id as idrol,
-          u.username
+          u.username, e.moneda
           from usuarios u 
    
           inner join roles r on u.id_rol = r.id
@@ -94,6 +94,8 @@ rutas.get("/", async (req, res) => {
         id= ${pool.escape(idusuario)}
         `);
         return res.json({
+          id_: idusuario,
+          moneda: result[0].moneda,
           token: token,
           username: result[0].username,
           nombre: result[0].nombre + ' ' + result[0].ap1,

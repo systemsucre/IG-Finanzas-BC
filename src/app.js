@@ -6,7 +6,7 @@ import cors from "cors";
 
 import { PORT } from "./config.js";
 import ruta from './rutas/rutas.js'
-
+import pool from "./modelo/bdConfig.js";
 //inicializar
 const app = express();
 app.use(cors());
@@ -15,8 +15,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.join(__dirname, "../imagenes")));
 
 // app.use(express.urlencoded({ extended: false }));
-app.use(express.json({limit: '50mb'}));
-app.use(express.urlencoded({limit: "50mb", extended: false, parameterLimit:51200000}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: "50mb", extended: false, parameterLimit: 51200000 }));
 app.set("puerto", PORT);
 
 
@@ -30,3 +30,24 @@ app.use(ruta)
 app.listen(app.get("puerto"), () => {
   console.log("servidor corriendo en: ", PORT);
 });
+
+
+// --- MANEJO DE CIERRE DE CONEXIONES (Graceful Shutdown) ---
+
+const cerrarServidor = async (signal) => {
+  console.log(`\nRecibido ${signal}. Cerrando System Sucre de forma segura...`);
+  try {
+    await pool.end(); // 2. Esto libera todas las conexiones en AlwaysData
+    console.log('✅ Pool de conexiones cerrado.');
+    process.exit(0);
+  } catch (err) {
+    console.error('❌ Error al cerrar el pool:', err);
+    process.exit(1);
+  }
+};
+
+// Captura SIGINT (Ctrl+C en la terminal o reinicio de Nodemon)
+process.on('SIGINT', () => cerrarServidor('SIGINT'));
+
+// Captura SIGTERM (Señal de finalización del sistema/hosting)
+process.on('SIGTERM', () => cerrarServidor('SIGTERM'));

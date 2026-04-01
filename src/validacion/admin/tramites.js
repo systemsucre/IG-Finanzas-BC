@@ -2,13 +2,6 @@ import { check } from "express-validator";
 import { validaciones } from "../headers.js";
 
 export const insertar = [
-  // Relación con Cliente
-  check("id_cliente")
-    .isNumeric()
-    .withMessage("Debe seleccionar un cliente válido")
-    .exists()
-    .notEmpty(),
-
 
   // Fechas
   check("fecha_ingreso")
@@ -66,8 +59,6 @@ export const actualizar = [
     .withMessage("ID de trámite no válido (formato UUID incorrecto)")
     .notEmpty()
     .withMessage("El ID no puede estar vacío"),
-
-  check("id_cliente").optional().isNumeric(),
 
 
   check("fecha_ingreso").optional().isISO8601(),

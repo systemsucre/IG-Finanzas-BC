@@ -12,7 +12,7 @@ const clientes = new Cliente();
 rutas.post("/listar", async (req, res) => {
   
   try {
-    const resultado = await clientes.listar();
+    const resultado = await clientes.listar();   
 
     return res.json({
       data: resultado,

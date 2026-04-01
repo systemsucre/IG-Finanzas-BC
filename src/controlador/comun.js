@@ -11,7 +11,7 @@ const reportes = new Reportes();
 rutas.post("/listar-tramites", async (req, res) => {
   // console.log('usuaio erlinda')
   try {
-    const resultado = await reportes.tramites(req.body.id);
+    const resultado = await reportes.tramites(req.body.id, req.body.id_entidadS);
     return res.json({ data: resultado, ok: true });
   } catch (error) {
     console.log(error)
@@ -86,9 +86,9 @@ rutas.post("/salidas-excel", async (req, res) => {
 rutas.post("/reporte-consolidado", async (req, res) => {
   // console.log('usuaio erlinda')
   try {
-    const { desde, hasta, estado } = req.body
+    const { desde, hasta, estado, id_entidadS } = req.body
 
-    const resultado = await reportes.reportaConsolidado(desde, hasta, estado);
+    const resultado = await reportes.reportaConsolidado(desde, hasta, estado, id_entidadS);
     return res.json({ data: resultado, ok: true });
   } catch (error) {
     console.log(error)

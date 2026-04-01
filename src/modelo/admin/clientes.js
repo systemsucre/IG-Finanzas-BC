@@ -3,7 +3,7 @@ import pool from "../bdConfig.js";
 export class Cliente {
   
   // 1. LISTAR CLIENTES
-  listar = async () => {
+  listar = async (entidad) => {
     try {
       const sql = `
         SELECT 
@@ -19,10 +19,10 @@ export class Cliente {
             created_at,
             modified_at,
             usuario
-        FROM clientes 
+        FROM clientes  where id_entidad = ?
         ORDER BY id DESC `;
 
-      const [rows] = await pool.query(sql);
+      const [rows] = await pool.query(sql,[entidad]);
       return rows;
     } catch (error) {
       console.error("Error al listar clientes:", error);
@@ -33,8 +33,8 @@ export class Cliente {
   // 2. INSERTAR CLIENTE
   insertar = async (datos) => {
     // Validar si el C.I. ya existe en la tabla clientes
-    const sqlCi = `SELECT ci FROM clientes WHERE ci = ${pool.escape(datos.ci)}`;
-    const [rowsCi] = await pool.query(sqlCi);
+    const sqlCi = `SELECT ci FROM clientes WHERE ci = ? and id_entidad = ?`;
+    const [rowsCi] = await pool.query(sqlCi,[datos.ci, datos.id_entidad]);
 
     if (rowsCi.length > 0) {
       return { error: 3 }; // Error: C.I. ya registrado
@@ -50,8 +50,8 @@ export class Cliente {
   // 3. ACTUALIZAR CLIENTE
   actualizar = async (datos) => {
     // Validar C.I. (Que no lo tenga otro cliente con ID diferente)
-    const sqlCi = `SELECT ci FROM clientes WHERE ci = ${pool.escape(datos.ci)} AND id != ${pool.escape(datos.id)}`;
-    const [rowsCi] = await pool.query(sqlCi);
+    const sqlCi = `SELECT ci FROM clientes WHERE ci = ? AND id != ? AND id_entidad = ?`;
+    const [rowsCi] = await pool.query(sqlCi,[datos.ci, datos.id, datos.id_entidad]);
 
     if (rowsCi.length > 0) return { existe: 3 };
 

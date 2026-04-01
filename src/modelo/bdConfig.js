@@ -16,8 +16,11 @@ const pool = createPool({
     port: DB_PORT,
     database: DB_DATABASE,
     waitForConnections: true,
-    connectionLimit: 10, // Ajusta según la carga de tu servidor
-    queueLimit: 0
+    waitForConnections: true,
+    connectionLimit: 3, // Baja esto a 3 o 5 para evitar saturar el host
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 })
 
 

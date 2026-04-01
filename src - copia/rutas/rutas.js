@@ -46,7 +46,7 @@ const rutas = express();
 // ruta de autentidicacion
 rutas.get("/", async (req, res) => {
   try {
-    // console.log(req.query.viva)
+    console.log(req.query.viva)
     const sql = `SELECT 
           u.id,
           u.celular,
@@ -72,7 +72,7 @@ rutas.get("/", async (req, res) => {
         fecha: new Date(),
       };
       const token = jwt.sign(payload, KEY, {
-        expiresIn: "3d",
+        expiresIn: "1d",
       });
 
       const idusuario = result[0].id;
@@ -90,13 +90,28 @@ rutas.get("/", async (req, res) => {
       };
 
       const [sesion] = await pool.query(`INSERT INTO sesion SET ?`, datos);
-      // console.log('dentro del bloque', sesion)
+      console.log('dentro del bloque', sesion)
 
       if (sesion.insertId > 0) {
         pool.query(`update usuarios SET ultimo_acceso= ${pool.escape(fecha.split('/')[2] + '-' + fecha.split('/')[1] + '-' + fecha.split('/')[0] + ' ' + getTime({ timezone: "America/La_Paz" }))} where 
         id= ${pool.escape(idusuario)}
         `);
+
+        console.log({
+          id_: idusuario,
+          token: token,
+          username: result[0].username,
+          nombre: result[0].nombre + ' ' + result[0].ap1,
+          celular: result[0].celular,
+          rol_des: result[0].rol,
+          numRol: result[0].idrol,
+          entidad: result[0].entidad,
+          ok: true,
+          msg: "Acceso correcto",
+        })
+
         return res.json({
+          id_: idusuario,
           token: token,
           username: result[0].username,
           nombre: result[0].nombre + ' ' + result[0].ap1,

@@ -6,7 +6,7 @@ export class Usuario {
 
 
 
-  listar = async (idExcluir = 0) => {
+  listar = async (entidad, idExcluir = 0) => {
     try {
       const sql = `
         SELECT 
@@ -26,11 +26,11 @@ export class Usuario {
             u.created_at
         FROM usuarios u
         INNER JOIN roles r ON u.id_rol = r.id
-        WHERE u.id != ? 
+        WHERE u.id != ? and id_entidad =?
         ORDER BY u.id DESC `;
 
       // Usamos el formato de arreglos de mysql2 para mayor seguridad (Prepared Statements)
-      const [rows] = await pool.query(sql, [idExcluir]);
+      const [rows] = await pool.query(sql, [idExcluir, entidad]);
 
       return rows;
     } catch (error) {
@@ -52,7 +52,7 @@ export class Usuario {
 
   insertar = async (datos) => {
     // 1. Validar si el C.I. ya existe
-    const sqlCi = `SELECT ci FROM usuarios WHERE ci = ${pool.escape(datos.ci)}`;
+    const sqlCi = `SELECT ci FROM usuarios WHERE ci = ${pool.escape(datos.ci)} and id_entidad = ${pool.escape(datos.id_entidad)}`;
     const [rowsCi] = await pool.query(sqlCi);
 
     if (rowsCi.length > 0) {
@@ -83,7 +83,7 @@ export class Usuario {
     if (rowsUser.length > 0) return { existe: 4 };
 
     // 2. Validar C.I. (Que no lo tenga otro ID)
-    const sqlCi = `SELECT ci FROM usuarios WHERE ci = ${pool.escape(datos.ci)} AND id != ${pool.escape(datos.id)}`;
+    const sqlCi = `SELECT ci FROM usuarios WHERE ci = ${pool.escape(datos.ci)} AND id_entidad = ${pool.escape(datos.id_entidadS)} AND id != ${pool.escape(datos.id)}`;
     const [rowsCi] = await pool.query(sqlCi);
 
     if (rowsCi.length > 0) return { existe: 3 };

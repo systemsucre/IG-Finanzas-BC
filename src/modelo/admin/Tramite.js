@@ -3,119 +3,13 @@ import pool from "../bdConfig.js";
 export class Tramite {
 
 
-  // listar = async (id) => {
-  //   try {
-  //     const sql = `
-  //     SELECT 
-  //       t.id, 
-  //       t.codigo, 
-  //       t.detalle, 
-  //       t.costo, 
-  //       CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre, 
-  //       t.id_cliente,
-  //       t.estado, 
-  //       t.eliminado, 
-  //       t.fecha_ingreso, 
-  //       t.fecha_finalizacion,
-  //       tt.tipo_tramite AS nombre_tipo_tramite,
-
-  //       /* Mantenemos los nombres de tu UI, pero con lógica de Ingresos Reales */   
-  //       IFNULL(SUM(DISTINCT i.monto_total), 0) AS total_ingresos, -- Informativo
-  //       IFNULL(SUM(DISTINCT s.monto_total), 0) AS total_gastos,
-        
-  //       /* El saldo real: Suma Ingresos - Suma Salidas */
-  //       (IFNULL(SUM(DISTINCT i.monto_total), 0) - IFNULL(SUM(DISTINCT s.monto_total), 0)) AS saldoDisponible
-
-  //     FROM tramites t
-  //     INNER JOIN clientes c ON t.id_cliente = c.id
-  //     INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
-
-  //     /* Unimos con ingresos (agrupados previamente por trámite para ligereza) */
-  //     LEFT JOIN (
-  //       SELECT id_tramite, SUM(monto) as monto_total 
-  //       FROM ingresos 
-  //       GROUP BY id_tramite
-  //     ) i ON t.id = i.id_tramite
-
-  //     /* Unimos con salidas (agrupados para evitar duplicar filas en el JOIN) */
-  //     LEFT JOIN (
-  //       SELECT id_tramite, SUM(monto) as monto_total 
-  //       FROM salidas 
-  //       WHERE estado = 3 
-  //       GROUP BY id_tramite
-  //     ) s ON t.id = s.id_tramite
-
-  //     WHERE ${id ? ` t.id = ${pool.escape(id)}` : `t.eliminado = 1`}
-  //     GROUP BY t.id
-  //     ORDER BY t.created_at DESC`;
-
-  //     const [rows] = await pool.query(sql);
-  //     return rows;
-  //   } catch (error) {
-  //     console.error("Error al listar trámites:", error);
-  //     throw error;
-  //   }
-  // };
-
-
-  // ObtenerTramite = async (id) => {
-  //   try {
-  //     const sql = `
-  //     SELECT 
-  //         t.id, 
-  //         t.codigo, 
-  //         t.fecha_ingreso, 
-  //         t.fecha_finalizacion, 
-  //         t.detalle, 
-  //         t.costo, 
-  //         t.otros, 
-  //         t.estado, 
-  //         t.id_cliente,
-  //         t.id_tipo_tramite,
-  //         CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,
-  //         tt.tipo_tramite AS nombre_tipo_tramite
-  //     FROM tramites t
-  //     INNER JOIN clientes c ON t.id_cliente = c.id
-  //     INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
-  //     WHERE t.id = ?`; // Filtramos por el ID recibido
-
-  //     const [rows] = await pool.query(sql, [id]);
-
-  //     // Retornamos solo el objeto encontrado, no la lista completa
-  //     return rows.length > 0 ? rows[0] : null;
-
-  //   } catch (error) {
-  //     console.error("Error al obtener el trámite por ID:", error);
-  //     throw error;
-  //   }
-  // };
-
-
-  /**
-   * Obtiene lista simplificada de clientes activos para selects
-   */
-  listarClientesActivos = async () => {
-    try {
-      const sql = `
-      SELECT id as value, CONCAT(nombre, ' ', ap1, ' ', IFNULL(ap2, '')) as label 
-      FROM clientes 
-      WHERE estado = 1 
-      ORDER BY nombre ASC`;
-      const [rows] = await pool.query(sql);
-      return rows;
-    } catch (error) {
-      console.error("Error al listar clientes auxiliares:", error);
-      throw error;
-    }
-  };
-
   /**
    * Obtiene lista simplificada de tipos de trámites activos para selects
    */
-  listarTiposActivos = async () => {
+  listarTiposActivos = async (entidad) => {
     try {
-      const sql = `SELECT id as value, tipo_tramite as label FROM tipo_tramites WHERE estado = 1 ORDER BY tipo_tramite ASC`;
-      const [rows] = await pool.query(sql);
+      const sql = `SELECT id as value, tipo_tramite as label FROM tipo_tramites WHERE estado = 1 and id_entidad = ? ORDER BY tipo_tramite ASC`;
+      const [rows] = await pool.query(sql, [entidad]);
       return rows;
     } catch (error) {
       console.error("Error al listar tipos auxiliares:", error);
@@ -161,7 +55,7 @@ export class Tramite {
 
       // 1. Verificamos la existencia y estado del trámite
       let numero = 1; // Valor por defecto
-      const [ultRow] = await pool.query(`SELECT MAX(numero) AS maximo FROM tramites`);
+      const [ultRow] = await pool.query(`SELECT MAX(numero) AS maximo FROM tramites where id_entidad = ?`, [datos.id_entidadS]);
 
       // Si hay registros, el resultado no será null. 
       // Sumamos 1 para el siguiente correlativo.
@@ -176,14 +70,13 @@ export class Tramite {
       // 2. Insertar con UUID generado por MySQL
       const sql = `
       INSERT INTO tramites (
-        id, id_cliente, codigo, numero, fecha_ingreso, fecha_finalizacion, 
+        id,  codigo, numero, fecha_ingreso, fecha_finalizacion, 
         id_tipo_tramite, detalle, costo, otros, estado, 
-        usuario, created_at, eliminado
-      ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        usuario, created_at, eliminado, id_entidad
+      ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
     `;
 
       const valores = [
-        datos.id_cliente,
         codigoFinal,
         numero,
         datos.fecha_ingreso,
@@ -194,7 +87,8 @@ export class Tramite {
         datos.otros,
         datos.estado,
         datos.usuario, // id del usuario que crea
-        datos.created_at || new Date()
+        datos.created_at || new Date(),
+        datos.id_entidadS
       ];
 
       const [result] = await pool.query(sql, valores);
@@ -219,7 +113,6 @@ export class Tramite {
   actualizar = async (datos) => {
     try {
       const sql = `UPDATE tramites SET 
-                   id_cliente = ${pool.escape(datos.id_cliente)},
                    fecha_ingreso = ${pool.escape(datos.fecha_ingreso)},
                    fecha_finalizacion = ${pool.escape(datos.fecha_finalizacion)},
                    id_tipo_tramite = ${pool.escape(datos.id_tipo_tramite)},

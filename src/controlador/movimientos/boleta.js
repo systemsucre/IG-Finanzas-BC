@@ -30,9 +30,10 @@ rutas.post("/crear-masivo", async (req, res) => {
     try {
         // El front debe enviar datosAuditoriaExtra: { usuarioId: 1, srol: 2 }
         const { items, datosAuditoriaExtra, usuario, srol, fecha_ } = req.body;
+        // console.log(datosAuditoriaExtra)
 
         if (!datosAuditoriaExtra || !srol) {
-            return res.status(400).json({ ok: false, msg: "Faltan datos de rol del usuario" });
+            return res.status(400).json({ ok: false, msg: "Faltan datos de rol del usuario" });  
         }
 
         const resultado = await objBoleta.crearBoletaMasiva(items, { usuario, srol, fecha_ });

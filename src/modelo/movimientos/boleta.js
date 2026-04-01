@@ -22,14 +22,14 @@ export class Boleta {
             LEFT JOIN usuarios u ON s.usuario_solicita_id = u.id
             WHERE s.estado != 0
             GROUP BY s.codigo_boleta
-            ORDER BY s.numero_boleta ASC`;
+            ORDER BY s.numero_boleta desc`;
 
     const [rows] = await pool.query(sql);
     return rows;
   }
 
-          // -- CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente 
-          // -- LEFT JOIN clientes c ON t.id_cliente = c.id
+  // -- CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente 
+  // -- LEFT JOIN clientes c ON t.id_cliente = c.id
 
 
 
@@ -65,7 +65,7 @@ export class Boleta {
           ORDER BY s.numero ASC`;
 
     const [rows] = await pool.query(sql, [codigo_boleta]);
-    console.log(rows)
+    // console.log(rows)
     return rows;
   }
 
@@ -141,14 +141,18 @@ export class Boleta {
 
 
   async actualizarBoletaMasiva(codigo_boleta, items, datosServidor) {
+
+    // console.log(codigo_boleta, items)
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
       // 1. Eliminar los items anteriores de esta boleta
-      const result = await connection.query("DELETE FROM salidas WHERE codigo_boleta = ? and estado = 1", [codigo_boleta]);
+      const result = await connection.query("DELETE FROM salidas WHERE codigo_boleta = ? and usuario_solicita_id = ? ", [codigo_boleta, datosServidor.usuario]);
 
-      if (result.affectedRows === 0) return { ok: false, msg: "Boleta no disponible para su edicion" };
+      // console.log(result, ' eliminando boleta,')
+
+      if (result && result[0].affectedRows === 0) return { ok: false, msg: "Boleta no disponible para su edicion" };
       // 2. Lógica de estado (mantenemos tu lógica de roles)
       let estadoAuto = 3 //(datosServidor.srol === 2 || datosServidor.srol === 3) ? 3 : 1;
 
@@ -240,8 +244,7 @@ export class Boleta {
         break;
       case 'eliminar':
         // Solo permite eliminar si está en estado Solicitado (1)
-        sql = `DELETE FROM salidas WHERE codigo_boleta = ? AND 
-        ${srol === 4 ? `estado = 1 and usuario_solicita_id = ?` : srol < 4 ? `usuario_solicita_id = ?` : ` `} `;
+        sql = `DELETE FROM salidas WHERE codigo_boleta = ? AND usuario_solicita_id = ? `;
         values = [codigo, usuario];
         break;
     }

@@ -9,7 +9,7 @@ export class Boleta {
                 s.codigo_boleta as id,
                 s.codigo_boleta, s.numero_boleta,
                 s.id_tramite,
-                s.usuario_solicita_id,
+                s.usuario_solicita_id, 
                 t.codigo, -- Traemos el código del trámite para identificarlo
                 s.estado,
                 SUM(s.monto) as monto_total,

@@ -13,6 +13,7 @@ export class Salidas {
    * 
    */
   listar = async (id_tramite) => {
+    console.log(id_tramite, ' listar boletas')
     try {
       const sql = `
         SELECT s.*, t.codigo AS codigo_tramite, concat(u.nombre ,' ', u.ap1) as usuario_nombre, m.simbolo

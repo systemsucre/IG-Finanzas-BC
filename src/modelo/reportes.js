@@ -173,7 +173,7 @@ export class Reportes {
         ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
 
         s.estado = 3 
-        AND s.fecha_despacho BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)}
+        AND s.fecha_despacho BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)} and t.eliminado = 1
         ORDER BY s.numero ASC`;
         const [rows] = await pool.query(sql);
         // console.log(sql)
@@ -198,7 +198,7 @@ export class Reportes {
 
         ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
 
-        i.fecha_ingreso BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)}
+        i.fecha_ingreso BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)} and t.eliminado = 1
         ORDER BY i.numero ASC`;
         const [rows] = await pool.query(sql);
         return rows;
@@ -287,7 +287,7 @@ export class Reportes {
                         SUM(i.monto) as total_ingresos 
                     FROM ingresos i
                     inner join tramites t on t.id = i.id_tramite
-                    WHERE t.id_entidad = ? and t.id_moneda = ?
+                    WHERE t.id_entidad = ? and t.id_moneda = ? and t.eliminado = 1
                     AND YEAR(i.fecha_ingreso) = YEAR(CURDATE())
                     GROUP BY MONTH(i.fecha_ingreso)
                 ) as ing ON months.mes = ing.mes
@@ -297,8 +297,8 @@ export class Reportes {
                         MONTH(s.fecha_solicitud) as mes, 
                         SUM(s.monto) as total_gastos 
                     FROM salidas s 
-                    inner join tramites t on t.id = s.id_tramite
-                    WHERE t.id_entidad = ? and t.id_moneda = ?
+                    inner join tramites t on t.id = s.id_tramite 
+                    WHERE t.id_entidad = ? and t.id_moneda = ? and t.eliminado = 1
                     AND s.estado = 3 
                     AND YEAR(s.fecha_despacho) = YEAR(CURDATE())
                     GROUP BY MONTH(s.fecha_solicitud)
@@ -314,7 +314,7 @@ export class Reportes {
 
     listarCajas = async (entidad) => {
         try {
-            const sql = `SELECT * FROM tramites where id_entidad = ?`;
+            const sql = `SELECT * FROM tramites where id_entidad = ? and eliminado = 1`;
             const [rows] = await pool.query(sql, [entidad]);
             return rows;
         } catch (error) {

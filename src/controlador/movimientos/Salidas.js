@@ -10,7 +10,7 @@ const objetoSalida = new Salidas();
 rutas.post("/listar", async (req, res) => {
   try {
     // Asegúrate de enviar id_tramite desde el front
-    const resultado = await objetoSalida.listar(req.body.id);
+    const resultado = await objetoSalida.listar(req.body.id);   
     return res.json({ data: resultado, ok: true });
   } catch (error) {
     console.error(error);

@@ -53,11 +53,12 @@ rutas.get("/", async (req, res) => {
           e.nombre_corto as entidad, 
           UPPER(r.rol) as rol,  
           r.id as idrol,
-          u.username, e.moneda
+          u.username, e.id_moneda as moneda
           from usuarios u 
-   
+
           inner join roles r on u.id_rol = r.id
           inner join entidad e on e.id = u.id_entidad 
+          inner join monedas m on m.id = e.id_moneda
           where u.username = ${pool.escape(req.query.intel)} and u.password = ${pool.escape(req.query.viva)} and u.estado = true`;
     const [result] = await pool.query(sql);
     // console.log(result, 'iniciio de sesion', req.query.intel, req.query.viva)

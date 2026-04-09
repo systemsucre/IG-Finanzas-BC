@@ -19,6 +19,8 @@ export class Reportes {
                         t.eliminado, 
                         t.fecha_ingreso, 
                         t.fecha_finalizacion,
+                        m.id as id_moneda,
+                        m.simbolo,
                         tt.tipo_tramite AS nombre_tipo_tramite,
 
                         /* Mantenemos los nombres de tu UI, pero con lógica de Ingresos Reales */
@@ -31,7 +33,7 @@ export class Reportes {
 
                     FROM tramites t
                     INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
-
+                    inner join monedas m on m.id = t.id_moneda
                     /* Unimos con ingresos (agrupados previamente por trámite para ligereza) */
                     LEFT JOIN (
                         SELECT id_tramite, SUM(monto) as monto_total 
@@ -53,7 +55,7 @@ export class Reportes {
 
             const [rows] = await pool.query(sql, [entidad]);
 
-            // console.log(rows, ' tramites')
+            // console.log(sql, ' tramites')
             return rows;
         } catch (error) {
             console.error("Error al listar trámites:", error);
@@ -61,6 +63,16 @@ export class Reportes {
         }
     };
 
+    listarModendas = async () => {
+        try {
+            const sql = `SELECT id as value, nombre as label, simbolo FROM monedas`;
+            const [rows] = await pool.query(sql);
+            return rows;
+        } catch (error) {
+            console.error("Error al listar tipos auxiliares:", error);
+            throw error;
+        }
+    };
 
     ObtenerTramite = async (id) => {
         try {
@@ -73,10 +85,12 @@ export class Reportes {
                     t.detalle, 
                     t.costo, 
                     t.otros, 
+                    m.id as id_moneda, m.simbolo,
                     t.estado, 
                     t.id_tipo_tramite,
                     tt.tipo_tramite AS nombre_tipo_tramite
                 FROM tramites t
+                inner join monedas m on m.id = t.id_moneda
                 INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
                 WHERE t.id = ?`; // Filtramos por el ID recibido
 
@@ -98,13 +112,15 @@ export class Reportes {
         try {
             const sql = `
         SELECT 
-          i.*, 
+          i.*, m.id as id_moneda, m.simbolo,
           t.codigo AS codigo_tramite, t.numero as numero_tramite,
           CONCAT(u.nombre, ' ', u.ap1) AS usuario_nombre, u.username, u.id as id_usuario  ,
            CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre   
         FROM ingresos i
         INNER JOIN clientes c ON i.id_cliente = c.id
         INNER JOIN tramites t ON i.id_tramite = t.id
+                inner join monedas m on m.id = t.id_moneda
+
         LEFT JOIN usuarios u ON i.usuario = u.id
         WHERE i.id_tramite = ?
         ORDER BY i.numero ASC
@@ -123,16 +139,18 @@ export class Reportes {
     getDatatoSalidaPdf = async (id) => {
         try {
             const sql = `
-                SELECT s.*, t.codigo AS codigo_tramite, t.numero as numero_tramite, concat(u.nombre ,' ', u.ap1) as usuario_nombre
+                SELECT s.*, t.codigo AS codigo_tramite, t.numero as numero_tramite, concat(u.nombre ,' ', u.ap1) as usuario_nombre,m.id as id_moneda, m.simbolo
                 FROM salidas s
                 INNER JOIN tramites t ON s.id_tramite = t.id
+                inner join monedas m on m.id = t.id_moneda
+
                 inner join usuarios u on u.id = s.usuario_solicita_id
                 where id_tramite = ${pool.escape(id)} and s.estado = 3
                 ORDER BY s.numero ASC
             `;
             const [rows] = await pool.query(sql);
 
-            // console.log(" listar salidas:", rows,  id);
+            console.log(" listar salidas:", rows, id);
 
             return rows;
         } catch (error) {
@@ -141,47 +159,53 @@ export class Reportes {
         }
     };
 
-
     // Reporte de Salidas entre fechas
-    getSalidasExcel = async (id, desde, hasta) => {
+    getSalidasExcel = async (desde, hasta, moneda, id) => {
         const sql = `
-        SELECT s.*, s.fecha_solicitud as fecha, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle, s.codigo_boleta,
+        SELECT s.*, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle, m.id as id_moneda, m.simbolo,
         CONCAT(u.nombre, ' ', u.ap1) as usuario_nombre
         FROM salidas s
         INNER JOIN tramites t ON s.id_tramite = t.id
+                inner join monedas m on m.id = t.id_moneda
+
         INNER JOIN usuarios u ON u.id = s.usuario_solicita_id
-        WHERE s.id_tramite = ${pool.escape(id)} 
-        AND s.estado = 3 
+        WHERE ${id ? `s.id_tramite = ${pool.escape(id)} AND` : ''}
+        ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
+
+        s.estado = 3 
         AND s.fecha_despacho BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)}
         ORDER BY s.numero ASC`;
         const [rows] = await pool.query(sql);
+        // console.log(sql)
         return rows;
     };
 
-    // INNER JOIN clientes c ON t.id_cliente = c.id
-
-    // CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre,    t.id_cliente,
-
-
     // Reporte de Ingresos entre fechas
-    getIngresosExcel = async (id, desde, hasta) => {
+    getIngresosExcel = async (desde, hasta, moneda, id) => {
         const sql = `
-        SELECT i.*, i.fecha_ingreso as fecha, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle,
+        SELECT i.*, t.codigo AS codigo_tramite, t.numero as numero_tramite, t.detalle as tramite_detalle,m.id as id_moneda, m.simbolo,
         CONCAT(u.nombre, ' ', u.ap1) as usuario_nombre,
-         CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS cliente_nombre
+        CONCAT(c.nombre, ' ', c.ap1) as cliente_nombre
+
         FROM ingresos i
-        INNER JOIN clientes c ON i.id_cliente = c.id
         INNER JOIN tramites t ON i.id_tramite = t.id
+                inner join monedas m on m.id = t.id_moneda
+
         LEFT JOIN usuarios u ON i.usuario = u.id
-        WHERE i.id_tramite = ${pool.escape(id)}
-        AND i.fecha_ingreso BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)}
+        inner join clientes c on c.id = i.id_cliente
+
+        WHERE ${id ? `i.id_tramite = ${pool.escape(id)} AND ` : ''}
+
+        ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
+
+        i.fecha_ingreso BETWEEN ${pool.escape(desde)} AND ${pool.escape(hasta)}
         ORDER BY i.numero ASC`;
         const [rows] = await pool.query(sql);
         return rows;
     };
 
 
-    reportaConsolidado = async (desde, hasta, estado, entidad) => {
+    reportaConsolidado = async (desde, hasta, estado, entidad, moneda) => {
         try {
             const sql = `
             SELECT
@@ -191,7 +215,7 @@ export class Reportes {
                 t.codigo, t.numero,
                 t.detalle, 
                 t.costo, 
-         
+         m.id as id_moneda, m.simbolo,
                 t.estado, 
                 t.eliminado, 
                 t.fecha_ingreso, 
@@ -206,6 +230,8 @@ export class Reportes {
                 (IFNULL(i.monto_total, 0) - IFNULL(s.monto_total, 0)) AS saldoDisponible
 
             FROM tramites t
+                inner join monedas m on m.id = t.id_moneda
+
             INNER JOIN tipo_tramites tt ON t.id_tipo_tramite = tt.id
 
             /* Subconsulta de Ingresos con filtro de fecha_ingreso */
@@ -228,7 +254,7 @@ export class Reportes {
                 GROUP BY id_tramite
             ) s ON t.id = s.id_tramite
 
-            WHERE ${estado === 4 ? '' : `t.estado = ${pool.escape(estado)} and `} t.eliminado = 1 and t.id_entidad = ${pool.escape(entidad)}
+            WHERE ${estado === 4 ? '' : `t.estado = ${pool.escape(estado)} and `} t.eliminado = 1 and t.id_entidad = ${pool.escape(entidad)} and t.id_moneda=${pool.escape(moneda)}
             GROUP BY t.id
             ORDER BY t.created_at DESC`;
 
@@ -240,4 +266,61 @@ export class Reportes {
             throw error;
         }
     };
+    //  and t.id_moneda = ${pool.escape(moneda)}
+    getStatsMensuales = async (id_entidad, moneda) => {
+        // console.log(moneda, ' moneda actual')
+        // const idMoneda = parseInt(moneda) || 1
+        const sql = `
+                SELECT 
+                    months.mes,
+                    IFNULL(ing.total_ingresos, 0) as ingresos,
+                    IFNULL(gas.total_gastos, 0) as gastos
+                FROM (
+                    SELECT 1 as mes UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 
+                    UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 
+                    UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12
+                ) as months
+                LEFT JOIN (
+                    /* Subconsulta de Ingresos por Entidad */
+                    SELECT 
+                        MONTH(i.fecha_ingreso) as mes, 
+                        SUM(i.monto) as total_ingresos 
+                    FROM ingresos i
+                    inner join tramites t on t.id = i.id_tramite
+                    WHERE t.id_entidad = ? and t.id_moneda = ?
+                    AND YEAR(i.fecha_ingreso) = YEAR(CURDATE())
+                    GROUP BY MONTH(i.fecha_ingreso)
+                ) as ing ON months.mes = ing.mes
+                LEFT JOIN (
+                    /* Subconsulta de Gastos por Entidad */
+                    SELECT 
+                        MONTH(s.fecha_solicitud) as mes, 
+                        SUM(s.monto) as total_gastos 
+                    FROM salidas s 
+                    inner join tramites t on t.id = s.id_tramite
+                    WHERE t.id_entidad = ? and t.id_moneda = ?
+                    AND s.estado = 3 
+                    AND YEAR(s.fecha_despacho) = YEAR(CURDATE())
+                    GROUP BY MONTH(s.fecha_solicitud)
+                ) as gas ON months.mes = gas.mes
+                ORDER BY months.mes ASC`;
+
+        // Pasamos el id_entidad dos veces (una para cada subconsulta)
+        const [rows] = await pool.query(sql, [id_entidad, moneda, id_entidad, moneda]);
+        // console.log(rows)
+        return rows;
+    };
+
+
+    listarCajas = async (entidad) => {
+        try {
+            const sql = `SELECT * FROM tramites where id_entidad = ?`;
+            const [rows] = await pool.query(sql, [entidad]);
+            return rows;
+        } catch (error) {
+            console.error("Error al listar tipos auxiliares:", error);
+            throw error;
+        }
+    };
+
 }

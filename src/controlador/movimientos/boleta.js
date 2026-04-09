@@ -7,7 +7,7 @@ const objBoleta = new Boleta();
 
 rutas.post("/listar", async (req, res) => {
     try {
-        const resultado = await objBoleta.listarBoletas();
+        const resultado = await objBoleta.listarBoletas(req.body.id_entidadS);
         return res.json({ data: resultado, ok: true });
     } catch (error) {
         console.log(error)

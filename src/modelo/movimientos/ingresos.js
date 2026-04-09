@@ -54,10 +54,12 @@ export class Ingresos {
           i.*, 
           t.codigo AS codigo_tramite,
           CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) as cliente_nombre,
-          CONCAT(u.nombre, ' ', u.ap1) AS usuario_nombre, u.username, u.id as id_usuario   
+          CONCAT(u.nombre, ' ', u.ap1) AS usuario_nombre, u.username, u.id as id_usuario   , m.simbolo
         FROM ingresos i
         inner join clientes c on c.id = i.id_cliente
         INNER JOIN tramites t ON i.id_tramite = t.id
+                    inner join monedas m on m.id = t.id_moneda
+          
         LEFT JOIN usuarios u ON i.usuario = u.id
         WHERE i.id_tramite = ?
         ORDER BY i.fecha_ingreso DESC
@@ -72,14 +74,15 @@ export class Ingresos {
   /**
  * Obtiene lista simplificada de clientes activos para selects
  */
-  listarClientesActivos = async () => {
+  listarClientesActivos = async (entidad) => {
     try {
       const sql = `
       SELECT id as value, CONCAT(nombre, ' ', ap1, ' ', IFNULL(ap2, '')) as label 
       FROM clientes 
-      WHERE estado = 1 
+      WHERE estado = 1 and id_entidad = ${pool.escape(entidad)}
       ORDER BY nombre ASC`;
       const [rows] = await pool.query(sql);
+      
       return rows;
     } catch (error) {
       console.error("Error al listar clientes auxiliares:", error);

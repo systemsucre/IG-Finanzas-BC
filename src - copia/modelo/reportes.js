@@ -239,8 +239,8 @@ export class Reportes {
         }
     };
 
-getStatsMensuales = async (id_entidad) => {
-    const sql = `
+    getStatsMensuales = async (id_entidad) => {
+        const sql = `
     SELECT 
         months.mes,
         IFNULL(ing.total_ingresos, 0) as ingresos,
@@ -273,8 +273,8 @@ getStatsMensuales = async (id_entidad) => {
     ) as gas ON months.mes = gas.mes
     ORDER BY months.mes ASC`;
 
-    // Pasamos el id_entidad dos veces (una para cada subconsulta)
-    const [rows] = await pool.query(sql, [id_entidad, id_entidad]);
-    return rows;
-};
+        // Pasamos el id_entidad dos veces (una para cada subconsulta)
+        const [rows] = await pool.query(sql, [id_entidad, id_entidad]);
+        return rows;
+    };
 }

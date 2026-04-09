@@ -21,6 +21,19 @@ rutas.post("/listar-tipo-tramites", async (req, res) => {
   }
 });
 
+// ENDPOINT: Obtener tipos de trámites para el combobox
+rutas.post("/listar-monedas", async (req, res) => {
+  try {
+    const resultado = await objetoTramite.listarModendas();
+    return res.json({
+      data: resultado,
+      ok: true
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, msg: "Error al cargar lista de tipos" });
+  }
+});
+
 
 // ENDPOINT: Obtener tipos de trámites para el combobox
 rutas.post("/obtener", async (req, res) => {
@@ -57,7 +70,7 @@ rutas.post("/listar", async (req, res) => {
 rutas.post("/crear", insertar, async (req, res) => {
   try {
     const {
-      fecha_ingreso, fecha_finalizacion,
+      fecha_ingreso, fecha_finalizacion,id_moneda,
       id_tipo_tramite, detalle, costo, otros, usuario, fecha_, id_entidadS
     } = req.body;
 
@@ -66,11 +79,11 @@ rutas.post("/crear", insertar, async (req, res) => {
       fecha_finalizacion,
       id_tipo_tramite,
       detalle,
-      costo,
+      costo,id_moneda,
       otros: otros || '',
       estado: 1, // 1: En curso
       usuario,
-      created_at: fecha_ , id_entidadS// Fecha enviada desde el frontend
+      created_at: fecha_, id_entidadS// Fecha enviada desde el frontend
     };
 
     const resultado = await objetoTramite.insertar(datos);
@@ -98,13 +111,13 @@ rutas.post("/crear", insertar, async (req, res) => {
 rutas.post("/editar", actualizar, async (req, res) => {
   try {
     const {
-      id, fecha_ingreso, fecha_finalizacion,
+      id, fecha_ingreso, fecha_finalizacion,id_moneda,
       id_tipo_tramite, detalle, costo, otros, estado, usuario, fecha_, datosAuditoriaExtra, id_entidadS
     } = req.body;
 
 
     const datos = {
-      id, fecha_ingreso, fecha_finalizacion,
+      id, fecha_ingreso, fecha_finalizacion,id_moneda,
       id_tipo_tramite, detalle, costo, otros, estado,
       usuario,
       modified_at: fecha_, id_entidadS

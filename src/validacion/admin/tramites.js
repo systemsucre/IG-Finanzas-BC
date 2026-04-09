@@ -22,6 +22,13 @@ export const insertar = [
     .withMessage("Debe seleccionar un tipo de trámite")
     .exists(),
 
+
+  check("id_moneda")
+    .isNumeric()
+    .withMessage("Debe seleccionar una moneda")
+    .exists(),
+
+
   // Detalle / Descripción
   check("detalle")
     .isLength({ min: 5 })
@@ -73,6 +80,10 @@ export const actualizar = [
     .exists(),
 
 
+  check("id_moneda")
+    .isNumeric()
+    .withMessage("Debe seleccionar una moneda")
+    .exists(),
 
   // Detalle / otros
   check("otros")

@@ -3,7 +3,7 @@ import pool from "../bdConfig.js";
 export class Boleta {
 
   // Lista todas las boletas del sistema agrupadas
-  async listarBoletas() {
+  async listarBoletas(entidad) {
     const sql = `
             SELECT 
                 s.codigo_boleta as id,
@@ -11,7 +11,7 @@ export class Boleta {
                 s.id_tramite,
                 s.usuario_solicita_id, 
                 t.codigo, -- Traemos el código del trámite para identificarlo
-                s.estado,
+                s.estado,u.id as usuario,m.simbolo,
                 SUM(s.monto) as monto_total,
                 MIN(s.fecha_solicitud) as fecha,
                 COUNT(s.id) as total_items,
@@ -19,8 +19,10 @@ export class Boleta {
                 CONCAT(u.nombre, ' ', u.ap1, ' ', IFNULL(u.ap2, '')) AS solicitado_por -- Opcional: quién la creó
             FROM salidas s
             LEFT JOIN tramites t ON s.id_tramite = t.id
+          inner join monedas m on m.id = t.id_moneda
+
             LEFT JOIN usuarios u ON s.usuario_solicita_id = u.id
-            WHERE s.estado != 0
+            WHERE s.estado != 0 and t.id_entidad = ${pool.escape(entidad)}
             GROUP BY s.codigo_boleta
             ORDER BY s.numero_boleta desc`;
 
@@ -47,7 +49,7 @@ export class Boleta {
           t.costo,
           t.id as value,
           t.codigo AS codigo_tramite,
-          u.id as usuario,
+          u.id as usuario,m.simbolo,
           
           CONCAT(u.nombre, ' ', u.ap1) AS solicitado_por,
           CONCAT(uau.nombre, ' ', uau.ap1) AS autorizado_por,
@@ -57,6 +59,7 @@ export class Boleta {
 
           FROM salidas s
           LEFT JOIN tramites t ON s.id_tramite = t.id
+          inner join monedas m on m.id = t.id_moneda
           LEFT JOIN usuarios u ON s.usuario_solicita_id = u.id
           LEFT JOIN usuarios uau ON s.usuario_aprueba_id = uau.id
           LEFT JOIN usuarios us ON s.usuario_despacha_id = us.id
@@ -119,10 +122,10 @@ export class Boleta {
           datosServidor.usuario,
           item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] || new Date(),
           // Si el estado es Despachado (3), se auto-llenan los campos de aprobación
+            estadoAuto === 3 ? datosServidor.usuario : null,
+          estadoAuto === 3 ? item.fecha + ' 00:00:00'  : null,
           estadoAuto === 3 ? datosServidor.usuario : null,
-          estadoAuto === 3 ? item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] : null,
-          estadoAuto === 3 ? datosServidor.usuario : null,
-          estadoAuto === 3 ? item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] : null,
+          estadoAuto === 3 ? item.fecha + ' 00:00:00'  : null,
           datosServidor.fecha_
         ];
 
@@ -186,9 +189,9 @@ export class Boleta {
           datosServidor.usuario,
           item.fecha + ' ' + (datosServidor.fecha_.split(' ')[1] || "00:00:00"),
           estadoAuto === 3 ? datosServidor.usuario : null,
-          estadoAuto === 3 ? item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] : null,
+          estadoAuto === 3 ? item.fecha + ' 00:00:00'  : null,
           estadoAuto === 3 ? datosServidor.usuario : null,
-          estadoAuto === 3 ? item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] : null,
+          estadoAuto === 3 ? item.fecha + ' 00:00:00'  : null,
           datosServidor.fecha_,
           datosServidor.fecha_
         ];
@@ -211,7 +214,7 @@ export class Boleta {
     let sql = "";
 
     let values = [];
-    const ahora = fecha_;
+    const ahora = fecha_.split(' ')[0]+' 00:00:00';
 
     switch (accion) {
       case 'aprobar':

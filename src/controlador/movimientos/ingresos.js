@@ -40,7 +40,7 @@ rutas.post("/obtener", async (req, res) => {
 // ENDPOINT: Obtener clientes para el combobox
 rutas.post("/listar-clientes", async (req, res) => {
   try {
-    const resultado = await objetoIngreso.listarClientesActivos();
+    const resultado = await objetoIngreso.listarClientesActivos(req.body.id_entidadS);  
     return res.json({
       data: resultado,
       ok: true

@@ -17,6 +17,17 @@ export class Tramite {
     }
   };
 
+  listarModendas = async () => {
+    try {
+      const sql = `SELECT id as value, nombre as label FROM monedas`;  
+      const [rows] = await pool.query(sql);
+      return rows;
+    } catch (error) {
+      console.error("Error al listar tipos auxiliares:", error);
+      throw error;
+    }
+  };
+
   /**
    * Registro de un nuevo trámite
    * @param {Object} datos - Incluye id_cliente, codigo, fechas, id_tipo_tramite, costo, etc.
@@ -72,8 +83,8 @@ export class Tramite {
       INSERT INTO tramites (
         id,  codigo, numero, fecha_ingreso, fecha_finalizacion, 
         id_tipo_tramite, detalle, costo, otros, estado, 
-        usuario, created_at, eliminado, id_entidad
-      ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+        usuario, created_at, eliminado, id_entidad, id_moneda
+      ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?,?)
     `;
 
       const valores = [
@@ -88,7 +99,8 @@ export class Tramite {
         datos.estado,
         datos.usuario, // id del usuario que crea
         datos.created_at || new Date(),
-        datos.id_entidadS
+        datos.id_entidadS,
+        datos.id_moneda
       ];
 
       const [result] = await pool.query(sql, valores);
@@ -121,6 +133,7 @@ export class Tramite {
                    costo = ${pool.escape(datos.costo)},
                    otros = ${pool.escape(datos.otros)},
                    usuario = ${pool.escape(datos.usuario)},
+                   id_moneda = ${pool.escape(datos.id_moneda)},
                    modified_at = ${pool.escape(datos.modified_at)}
                    WHERE id = ${pool.escape(datos.id)}`;
 

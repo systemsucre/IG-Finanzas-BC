@@ -99,7 +99,7 @@ export const actualizar = [
   check("password")
     .isLength({ min: 4 })
     .withMessage("La contraseña debe tener al menos 4 caracteres")
-    .optional({checkFalsy:true}),
+    .optional({ checkFalsy: true }),
 
   // Middleware final que lanza los errores si existen
   (req, res, next) => {
@@ -128,7 +128,10 @@ export const actualizarMiPerfil = [
   check("celular")
     .matches(/^\d{1,10}$/)
     .exists(),
-  check("correo").matches(/^\w+([.-_+]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/),
+  check("ci")
+    .matches(/^\d{5,15}((\s|[-])\d{1,2}[A-Z]{1,2})?$/)
+    .withMessage("C.I. no válido")
+    .exists(),
 
   (req, res, next) => {
     validaciones(req, res, next);
@@ -136,38 +139,13 @@ export const actualizarMiPerfil = [
 ];
 
 export const cambiarMiContraseña = [
+  check("pass").exists().isLength({ min: 5 }),
   check("pass1").exists().isLength({ min: 5 }),
-  check("pass2").exists().isLength({ min: 5 }),
   (req, res, next) => {
     validaciones(req, res, next);
   },
 ];
 
-export const buscar = [
-  check("dato")
-    .matches(/^[()/a-zA-Z.@ Ññ0-9_-]{1,400}$/)
-    .exists(),
-  (req, res, next) => {
-    validaciones(req, res, next);
-  },
-];
 
-export const siguiente = [
-  check("cantidad").isLength({ min: 1 }).exists().isNumeric(),
-  check("id").isLength({ min: 1 }).exists().isNumeric(),
-
-  (req, res, next) => {
-    validaciones(req, res, next);
-  },
-];
-
-export const anterior = [
-  check("cantidad").isLength({ min: 1 }).exists().isNumeric(),
-  check("id").isLength({ min: 1 }).exists().isNumeric(),
-
-  (req, res, next) => {
-    validaciones(req, res, next);
-  },
-];
 
 // buscar

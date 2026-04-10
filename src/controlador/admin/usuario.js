@@ -5,6 +5,7 @@ import {
   actualizar,
   recet,
 } from "../../validacion/admin/usuario.js";
+import { registrarAuditoria } from "../../modelo/auditoria.js";
 
 const rutas = Router();
 const usuarios = new Usuario();
@@ -96,7 +97,7 @@ rutas.post("/crear", insertar, async (req, res) => {
 rutas.post("/editar", actualizar, async (req, res) => {
   try {
     const {
-      id, id_rol, usuario, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, fecha_, id_entidadS
+      id, id_rol, usuario, nombre, ap1, ap2, ci, celular, direccion, username, password, estado, fecha_, id_entidadS, datosAuditoriaExtra
     } = req.body;
 
     const datos = {
@@ -112,6 +113,14 @@ rutas.post("/editar", actualizar, async (req, res) => {
     if (resultado.error === 1)
       return res.json({ ok: false, msg: "No se realizaron cambios o el usuario no existe" });
 
+    registrarAuditoria(req, {
+      usuario_id: req.body.usuario, // El ID que viene del frontend
+      accion: 'UPDATE',
+      tabla: 'usuarios',
+      detalle: datos, // Datos que se enviaron
+      datosAuditoriaExtra, fecha: fecha_
+    });
+
     return res.json({
       data: resultado,
       ok: true,
@@ -126,13 +135,20 @@ rutas.post("/editar", actualizar, async (req, res) => {
 
 rutas.post("/cambiar-estado", async (req, res) => {
   try {
-    const { id, estado, usuario, fecha_ } = req.body;
+    const { id, estado, usuario, fecha_, datosAuditoriaExtra } = req.body;
 
     const datos = { id, estado: estado == 1 ? 1 : 0, usuario, fecha_ };
     const resultado = await usuarios.eliminarLogico(datos);
 
     if (resultado) {
       const msg = (estado == 1) ? "Usuario activado" : "Usuario desactivado";
+      registrarAuditoria(req, {
+        usuario_id: req.body.usuario, // El ID que viene del frontend
+        accion: 'UPDATE estado',
+        tabla: 'usuarios',
+        detalle: datos, // Datos que se enviaron
+        datosAuditoriaExtra, fecha: fecha_
+      });
       return res.json({ ok: true, msg });
     } else {
       return res.json({ ok: false, msg: "No se pudo cambiar el estado" });

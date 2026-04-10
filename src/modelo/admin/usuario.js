@@ -132,54 +132,57 @@ export class Usuario {
     } else return false
   };
 
+  // Dentro de tu clase de Usuarios
+  cambiarMiContraseña = async ({ pass, pass1, fecha_, usuario }) => {
+    // 1. Verificamos si la contraseña actual coincide
+    // NOTA: Si usas bcrypt, aquí deberías usar bcrypt.compare
+    const sqlExists = `SELECT id FROM usuarios WHERE password = ? AND id = ?`;
+    const [result] = await pool.query(sqlExists, [pass, usuario]);
 
+    if (result.length === 0) return false;
 
-  // metodos, gestionar mi perfil
-  cambiarMiContraseña = async (datos) => {
-    const sqlExists = `SELECT * FROM medico WHERE 
-            contraseña = ${pool.escape(datos.pass1)} 
-            and id = ${pool.escape(datos.usuario)}`;
-    const [result] = await pool.query(sqlExists);
+    // 2. Actualizamos
+    const sqlUpdate = `UPDATE usuarios SET password = ?, updated_at = ? WHERE id = ?`;
+    await pool.query(sqlUpdate, [pass1, fecha_, usuario]);
 
-    if (result.length > 0) {
-      const sql = `UPDATE medico SET
-                contraseña = ${pool.escape(datos.pass2)}, editing = ${pool.escape(datos.fecha)}, usuario = ${pool.escape(datos.usuario)}
-                WHERE id = ${pool.escape(datos.usuario)}`;
-
-      await pool.query(sql);
-      return true;
-    } else return false;
+    return true;
   };
 
   actualizarMiPerfil = async (datos) => {
-    const sqlexisteCorreo = `SELECT correo from medico where correo = ${pool.escape(datos.correo)} and id != ${pool.escape(datos.usuario)} and correo != 'example@systemsucre.info'`;
-    const [result] = await pool.query(sqlexisteCorreo);
-    if (result.length === 0) {
-      const sql = `UPDATE medico SET
-            medico = ${pool.escape(datos.nombre)},
-            celular = ${pool.escape(datos.celular)},
-            correo = ${pool.escape(datos.correo)},
-            editing = ${pool.escape(datos.fecha_)},
-            usuario = ${pool.escape(datos.usuario)}
-            WHERE id = ${pool.escape(datos.usuario)}`;
-      await pool.query(sql);
-      return await this.miPerfil(datos.usuario);
-    } else return { existe: 1 };
+    const { nombre, ap1, ap2, celular, ci, direccion, fecha_, usuario } = datos;
+
+    // 1. Validar si el CI ya existe en otro usuario
+    const sqlCheck = `SELECT id FROM usuarios WHERE ci = ? AND id != ?`;
+    const [existe] = await pool.query(sqlCheck, [ci, usuario]);
+
+    if (existe.length > 0) return { existe: 1 };
+
+    // 2. Actualizar datos
+    const sqlUpdate = `
+        UPDATE usuarios SET 
+            nombre = ?, ap1 = ?, ap2 = ?, celular = ?, 
+            ci = ?, direccion = ?, updated_at = ? 
+        WHERE id = ?`;
+
+    await pool.query(sqlUpdate, [nombre, ap1, ap2, celular, ci, direccion, fecha_, usuario]);
+
+    // 3. Retornar el perfil actualizado
+    return await this.miPerfil(usuario);
   };
 
   miPerfil = async (id) => {
-    let sqlUser = `select m.id, m.ci, m.medico , m.ci as username,  m.correo, 
-                            m.celular, 
-                            r.rol as rol, 
-                            e.entidad as entidad
-                            from medico m
-                            left join rol r on r.id = m.rol
-                            left join entidad e  on e.id = m.entidad
-                            where m.id  = ${pool.escape(id)}`;
+    const sqlUser = `
+        SELECT 
+            m.id, m.ci, m.nombre, m.ap1, m.ap2, m.direccion, username,
+            CONCAT(m.nombre, ' ', m.ap1, ' ', IFNULL(m.ap2, '')) AS nombre_completo, 
+             m.ci, m.celular, 
+            r.rol as rol
+        FROM usuarios m
+        LEFT JOIN roles r ON r.id = m.id_rol
+        
+        WHERE m.id = ?`;
 
-    const [result] = await pool.query(sqlUser);
-    // console.log(result)
-
+    const [result] = await pool.query(sqlUser, [id]);
     return result;
   };
 }

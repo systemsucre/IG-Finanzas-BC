@@ -133,8 +133,6 @@ export class Reportes {
         }
     };
 
-
-
     // csript para PDF
     getDatatoSalidaPdf = async (id) => {
         try {
@@ -266,6 +264,7 @@ export class Reportes {
             throw error;
         }
     };
+
     //  and t.id_moneda = ${pool.escape(moneda)}
     getStatsMensuales = async (id_entidad, moneda) => {
         // console.log(moneda, ' moneda actual')
@@ -321,6 +320,27 @@ export class Reportes {
             console.error("Error al listar tipos auxiliares:", error);
             throw error;
         }
+    };
+
+    // En tu modelo de Estadísticas (Estadisticas.js)
+    getHistoricoParaIA = async (entidad, moneda) => {
+        const sql = `
+        SELECT 
+            MONTH(fecha) as mes, 
+            YEAR(fecha) as anio,
+            SUM(ingreso) as total_ingresos,
+            SUM(egreso) as total_gastos
+        FROM (
+            SELECT i.fecha_ingreso as fecha, i.monto as ingreso, 0 as egreso FROM ingresos i inner join tramites t on t.id = i.id_tramite where t.id_entidad = ? and t.id_moneda = ?
+            UNION ALL
+            SELECT s.fecha_despacho as fecha, 0 as ingreso, s.monto as egreso FROM salidas s inner join tramites t on t.id = s.id_tramite where t.id_entidad = ? and t.id_moneda = ?
+        ) as movimientos
+        GROUP BY anio, mes
+        ORDER BY anio ASC, mes ASC`;
+
+        const [rows] = await pool.query(sql, [entidad, moneda, entidad, moneda]);
+        console.log(rows)
+        return rows;
     };
 
 }

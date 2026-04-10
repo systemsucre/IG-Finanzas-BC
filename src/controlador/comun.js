@@ -141,4 +141,17 @@ rutas.post("/listar-cajas", async (req, res) => {
   }
 });
 
+rutas.post("/historico-ia", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+    const historico = await reportes.getHistoricoParaIA(req.body.id_entidadS, req.body.moneda);
+    // const resultado = await predecirFuturoFinanciero()
+    // console.log(resultado, ' resultado Ia')
+    return res.json({ data: historico, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al procesar datos" });
+  }
+});
+
 export default rutas;

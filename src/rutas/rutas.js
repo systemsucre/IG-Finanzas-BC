@@ -136,8 +136,20 @@ const verificacion = express();
 verificacion.use((req, res, next) => {
   try {
 
-    let fecha = getDate({ timeZone: "America/La_Paz", })
-    let formato = fecha.split('/')[2] + '-' + fecha.split('/')[1] + '-' + fecha.split('/')[0] + ' ' + getTime({ timezone: "America/La_Paz" })
+    // 1. Obtenemos la fecha real de Bolivia ignorando el reloj del servidor
+    const ahoraBolivia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/La_Paz" }));
+
+    // 2. Extraemos los componentes (esto evita que se adelante un día)
+    const anio = ahoraBolivia.getFullYear();
+    const mes = String(ahoraBolivia.getMonth() + 1).padStart(2, '0');
+    const dia = String(ahoraBolivia.getDate()).padStart(2, '0');
+
+    // 3. Formato final para MariaDB (YYYY-MM-DD)
+    const fechaFormateada = `${anio}-${mes}-${dia}`;
+
+    // 4. Formato con hora para tu variable req.body.fecha_
+    const horaBolivia = getTime({ timezone: "America/La_Paz" });
+    const formatoCompleto = `${fechaFormateada} ${horaBolivia}`;
     // console.log(formato, ' hora peru')
     const bearerHeader = req.headers["authorization"];
 
@@ -171,7 +183,7 @@ verificacion.use((req, res, next) => {
           req.body.srol = await result[0].rol;
           req.body.nombreusuarioS = await result[0].titular;
           req.body.all_permisionS = await result[0].all_permision;
-          req.body.fecha_ = formato;
+          req.body.fecha_ = formatoCompleto;
           // console.log(req.body, ' antes de pasar la validación'
           next();
         } else {

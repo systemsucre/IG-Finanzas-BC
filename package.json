@@ -26,7 +26,8 @@
     "pdfmake": "^0.2.18",
     "socket.io": "^4.8.1",
     "useragent": "^2.3.0",
-    "util-tiempo": "^1.0.52"
+    "util-tiempo": "^1.0.52",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

@@ -93,7 +93,7 @@ const gestionarEstado = (accion) => async (req, res) => {
                 accion: accion+" - " + codigo,
                 tabla: "salidas",
                 detalle: { codigo,  },
-                datosAuditoriaExtra,
+                datosAuditoriaExtra, 
                 fecha: fecha_
             });
             return res.json({ ok: true, msg: 'Transaccion realizada correctamente' });
@@ -108,7 +108,7 @@ rutas.post("/aprobar", gestionarEstado('aprobar'));
 rutas.post("/aprobar-despachar", gestionarEstado('aprobardespachar'));
 rutas.post("/rechazar", gestionarEstado('rechazar'));
 rutas.post("/despachar", gestionarEstado('despachar'));
-rutas.post("/eliminar", gestionarEstado('eliminar'));
+rutas.post("/eliminar", gestionarEstado('eliminar'));   
 rutas.post("/edicion", gestionarEstado('edicion'));
 
 export default rutas;

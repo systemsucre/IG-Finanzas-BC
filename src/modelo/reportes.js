@@ -338,7 +338,7 @@ export class Reportes {
         ORDER BY anio ASC, mes ASC`;
 
     const [rows] = await pool.query(sql, [entidad, moneda, entidad, moneda]);
-    // console.log(rows);
+    // console.log(rows, ' datos para la IA con fecha corregida');
     return rows;
   };
 }

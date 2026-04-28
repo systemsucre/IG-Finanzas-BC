@@ -105,15 +105,18 @@ export class Boleta {
           : (ultimoNumero = ultimoNumero + 1);
 
         // Usamos UUID() directamente en el INSERT de SQL
+
+        const fechaCompleta = `${item.fecha} ${datosServidor.fecha_.split(' ')[1] || '00:00:00'}`;
+        const usuario = datosServidor.usuario;
+        const fechaRegistro = datosServidor.fecha_;
+
         const sql = `
-                    INSERT INTO salidas (
-                        id, numero, codigo_boleta, numero_boleta, id_tramite, estado, 
-                        monto, detalle, usuario_solicita_id, fecha_solicitud, 
-
-
-                        usuario_aprueba_id, fecha_aprobacion, 
-                        usuario_despacha_id, fecha_despacho, created_at
-                    ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            INSERT INTO salidas (
+                id, numero, codigo_boleta, numero_boleta, id_tramite, estado, 
+                monto, detalle, usuario_solicita_id, fecha_solicitud,
+                usuario_aprueba_id, fecha_aprobacion, 
+                usuario_despacha_id, fecha_despacho,  created_at
+            ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const values = [
           ultimoNumero,
@@ -123,16 +126,14 @@ export class Boleta {
           estadoAuto,
           item.monto,
           item.detalle,
-          datosServidor.usuario,
-          item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] || new Date(),
-          // Si el estado es Despachado (3), se auto-llenan los campos de aprobación
-          datosServidor.usuario,
-          item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] || new Date(),
-          datosServidor.usuario,
-          item.fecha + ' ' + datosServidor.fecha_.split(' ')[1] || new Date(),
-          datosServidor.fecha_,
+          usuario, // usuario_solicita_id
+          fechaCompleta, // fecha_solicitud
+          usuario, // usuario_aprueba_id
+          fechaCompleta, // fecha_aprobacion
+          usuario, // usuario_despacha_id
+          fechaCompleta, // fecha_despacho
+          fechaRegistro, // updated_at
         ];
-
         await connection.query(sql, values);
       }
 
@@ -188,30 +189,35 @@ export class Boleta {
         ultimoNumero === 0
           ? (ultimoNumero = 1)
           : (ultimoNumero = ultimoNumero + 1);
+
+        const fechaCompleta = `${item.fecha} ${datosServidor.fecha_.split(' ')[1] || '00:00:00'}`;
+        const usuario = datosServidor.usuario;
+        const fechaRegistro = datosServidor.fecha_;
+
         const sql = `
-        INSERT INTO salidas (
-          id, numero, codigo_boleta, numero_boleta, id_tramite, estado, 
-          monto, detalle, usuario_solicita_id, fecha_solicitud,
-          usuario_aprueba_id, fecha_aprobacion, 
-          usuario_despacha_id, fecha_despacho, updated_at, created_at
-        ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            INSERT INTO salidas (
+                id, numero, codigo_boleta, numero_boleta, id_tramite, estado, 
+                monto, detalle, usuario_solicita_id, fecha_solicitud,
+                usuario_aprueba_id, fecha_aprobacion, 
+                usuario_despacha_id, fecha_despacho, updated_at, created_at
+            ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const values = [
           ultimoNumero,
-          codigo_boleta, // Conservamos el código original
+          codigo_boleta,
           ultimoNumeroBol,
           item.id_tramite,
           estadoAuto,
           item.monto,
           item.detalle,
-          datosServidor.usuario,
-          item.fecha + ' ' + (datosServidor.fecha_.split(' ')[1] || '00:00:00'),
-          datosServidor.usuario,
-          item.fecha + ' ' + (datosServidor.fecha_.split(' ')[1] || '00:00:00'),
-          datosServidor.usuario,
-          item.fecha + ' ' + (datosServidor.fecha_.split(' ')[1] || '00:00:00'),
-          datosServidor.fecha_,
-          datosServidor.fecha_,
+          usuario, // usuario_solicita_id
+          fechaCompleta, // fecha_solicitud
+          usuario, // usuario_aprueba_id
+          fechaCompleta, // fecha_aprobacion
+          usuario, // usuario_despacha_id
+          fechaCompleta, // fecha_despacho
+          fechaRegistro, // updated_at
+          fechaRegistro, // created_at
         ];
 
         await connection.query(sql, values);

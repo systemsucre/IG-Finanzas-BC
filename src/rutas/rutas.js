@@ -30,24 +30,25 @@ import comuun from '../controlador/comun.js';
 
 const rutas = express();
 
-// rutas.get('/modificar', async (req, res) => {
-//   console.log('Haciendo correcciones');
-//   const sql = `SELECT * FROM salidas  `;
-//   const [result] = await pool.query(sql);
-//   for (let i of result) {
-//     pool.query(
-//       `
-//       update salidas set usuario_aprueba_id = ?, fecha_aprobacion = ?, usuario_despacha_id  = ?, 	fecha_despacho = ?
-//       `,
-//       [
-//         i.usuario_solicita_id,
-//         i.fecha_solicitud,
-//         i.usuario_solicita_id,
-//         i.fecha_solicitud,
-//       ],
-//     );
-//   }
-// });
+rutas.get('/modificar', async (req, res) => {
+  console.log('Haciendo correcciones');
+  const sql = `SELECT * FROM salidas  `;
+  const [result] = await pool.query(sql);
+  for (let i of result) {
+    await pool.query(
+      `
+      update salidas set usuario_aprueba_id = ?, fecha_aprobacion = ?, usuario_despacha_id  = ?, 	fecha_despacho = ? where id = ?
+      `,
+      [
+        i.usuario_solicita_id,
+        i.fecha_solicitud,
+        i.usuario_solicita_id,
+        i.fecha_solicitud,
+        i.id,
+      ],
+    );
+  }
+});
 
 // +*********************************************************** login ****************************************
 

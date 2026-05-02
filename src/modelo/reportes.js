@@ -188,7 +188,7 @@ export class Reportes {
         LEFT JOIN usuarios u ON i.usuario = u.id
         inner join clientes c on c.id = i.id_cliente
 
-        WHERE i.estado = 2  ${id ? `i.id_tramite = ${pool.escape(id)} AND ` : ''} 
+        WHERE i.estado = 2  ${id ? `and i.id_tramite = ${pool.escape(id)} AND ` : ''} 
 
         ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
 

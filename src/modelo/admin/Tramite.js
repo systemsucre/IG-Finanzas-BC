@@ -49,8 +49,8 @@ export class Tramite {
 
       // 2. Buscar el último código que empiece con ese prefijo
       const [ultimo] = await pool.query(
-        "SELECT codigo FROM tramites WHERE  codigo LIKE ? ORDER BY created_at DESC LIMIT 1",
-        [`${prefijo}-%`]
+        "SELECT codigo FROM tramites WHERE  codigo LIKE ? AND   id_entidad = ?  ORDER BY created_at DESC LIMIT 1",
+        [`${prefijo}-%`, datos.id_entidadS]
       );
 
       let nuevoNumero = 1;
@@ -73,7 +73,7 @@ export class Tramite {
       if (ultRow.length > 0 && ultRow[0].maximo !== null) {
         numero = ultRow[0].maximo + 1;
       } else {
-        numero = 1;
+        numero = 1; 
       }
 
       // 3. Formatear con 6 dígitos: ACC-000001

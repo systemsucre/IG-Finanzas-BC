@@ -142,7 +142,7 @@ export class Ingresos {
   /**
    * Listar ingresos vinculados a un trámite específico
    */
-  listarIngresosDirectos = async (entidad) => {
+  listarIngresosDirectos = async (entidad, id_tramite) => {
     try {
       const sql = `
         SELECT 
@@ -156,11 +156,11 @@ export class Ingresos {
         inner join monedas m on m.id = t.id_moneda
           
         LEFT JOIN usuarios u ON i.usuario = u.id
-        where t.id_entidad = ? and (i.estado = 2 or i.estado = 3)
+        where t.id_entidad = ? ${id_tramite ? 'and t.id = ?' : ''} and (i.estado = 2 or i.estado = 3)
         ORDER BY i.fecha_ingreso DESC
       `;
-      const [rows] = await pool.query(sql, [entidad]);
-      return rows;
+      const [rows] = await pool.query(sql, [entidad, id_tramite]);
+      return rows; 
     } catch (error) {
       console.error('Error al listar ingresos por trámite:', error);
       throw error;

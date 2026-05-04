@@ -17,7 +17,7 @@ rutas.post('/listar-ingresos-directos', async (req, res) => {
   try {
     // console.log(req.body.id_tramite)
     const resultado = await objetoIngreso.listarIngresosDirectos(
-      req.body.id_entidadS,
+      req.body.id_entidadS, req.body.id_tramite
     );
     return res.json({ data: resultado, ok: true });
   } catch (error) {
@@ -26,7 +26,6 @@ rutas.post('/listar-ingresos-directos', async (req, res) => {
       .status(500)
       .json({ ok: false, msg: 'Error al listar ingresos del trámite' });
   }
-  w;
 });
 rutas.post('/listar-ingresos-pendientes', async (req, res) => {
   try {
@@ -41,7 +40,6 @@ rutas.post('/listar-ingresos-pendientes', async (req, res) => {
       .status(500)
       .json({ ok: false, msg: 'Error al listar ingresos del trámite' });
   }
-  w;
 });
 
 /**

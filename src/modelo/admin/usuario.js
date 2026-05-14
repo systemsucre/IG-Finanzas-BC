@@ -185,4 +185,28 @@ export class Usuario {
     const [result] = await pool.query(sqlUser, [id]);
     return result;
   };
+
+  miSesiones = async (id) => {
+    const sqlUser = `
+        SELECT 
+             s.id, s.fecha, s.hora,s.navegador, s.so, s.zonaHoraria, s.ip, s.metadata
+        FROM usuarios u
+        LEFT JOIN sesion s ON u.id = s.idUsuario
+        
+        WHERE u.id = ?`;
+
+    const [result] = await pool.query(sqlUser, [id]);
+    return result;
+  };
+
+  eliminarSesion = async (id) => {
+    const sqlUser = `
+        delete from sesion
+        
+        WHERE id = ?`;
+
+    const [result] = await pool.query(sqlUser, [id]);
+    return result.affectedRows > 0;
+  };
+
 }

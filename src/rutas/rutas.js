@@ -52,41 +52,49 @@ rutas.get('/modificar', async (req, res) => {
 
 // +*********************************************************** login ****************************************
 
-rutas.get('/', async (req, res) => {
+rutas.post('/', async (req, res) => {
   try {
-    // console.log(req.query.viva)
+    // CAMBIO CLAVE: Ahora usamos req.body en lugar de req.query
+    const { intel, viva, datosAuditoriaExtra } = req.body;
+    // console.log(datosAuditoriaExtra, ' datos login')
+
     const sql = `SELECT 
           u.id,
           u.celular,
           u.nombre, u.ap1,
-          e.id as id_entiad,
           e.id as id_entidad, 
           e.nombre_corto as entidad, 
           UPPER(r.rol) as rol,  
           r.id as idrol,
           u.username, e.id_moneda as moneda
           from usuarios u 
-
           inner join roles r on u.id_rol = r.id
           inner join entidad e on e.id = u.id_entidad 
           inner join monedas m on m.id = e.id_moneda
-          where u.username = ${pool.escape(req.query.intel)} and u.password = ${pool.escape(req.query.viva)} and u.estado = true`;
+          where u.username = ${pool.escape(intel)} 
+          and u.password = ${pool.escape(viva)} 
+          and u.estado = true`;
+
     const [result] = await pool.query(sql);
-    // console.log(result, 'iniciio de sesion', req.query.intel, req.query.viva)
+
     if (result.length === 1) {
       const payload = {
-        usuario: result[0].ci,
+        id: result[0].id,
         name: result[0].nombre,
-        servicio: result[0].celular,
         fecha: new Date(),
       };
+
       const token = jwt.sign(payload, KEY, {
         expiresIn: '3d',
       });
 
       const idusuario = result[0].id;
-      let fecha = getDate({ timeZone: 'America/La_Paz' });
-      const datos = {
+      // Configuración de fecha para Bolivia
+      let fechaObj = getDate({ timeZone: 'America/La_Paz' });
+      const fechaFormateada = fechaObj.split('/')[2] + '-' + fechaObj.split('/')[1] + '-' + fechaObj.split('/')[0];
+      const horaActual = getTime({ timezone: 'America/La_Paz' });
+
+      const datosSesion = {
         idusuario,
         usuario: result[0].username,
         titular: result[0].nombre,
@@ -94,23 +102,27 @@ rutas.get('/', async (req, res) => {
         id_entidad: result[0].id_entidad,
         entidad: result[0].entidad,
         token,
-        fecha:
-          fecha.split('/')[2] +
-          '-' +
-          fecha.split('/')[1] +
-          '-' +
-          fecha.split('/')[0],
-        hora: getTime({ timezone: 'America/La_Paz' }),
+        fecha: fechaFormateada,
+        hora: horaActual,
+        navegador: datosAuditoriaExtra.navegador,
+        so: datosAuditoriaExtra.sistema_operativo,
+        zonaHoraria: datosAuditoriaExtra.zona_horaria,
+        ip: datosAuditoriaExtra.ip_publica,
+        metadata: JSON.stringify(datosAuditoriaExtra),
       };
 
-      const [sesion] = await pool.query(`INSERT INTO sesion SET ?`, datos);
-      // console.log('dentro del bloque', sesion)
+      // Registro de la sesión en la base de datos
+      const [sesion] = await pool.query(`INSERT INTO sesion SET ?`, datosSesion);
 
       if (sesion.insertId > 0) {
-        pool.query(`update usuarios SET ultimo_acceso= ${pool.escape(fecha.split('/')[2] + '-' + fecha.split('/')[1] + '-' + fecha.split('/')[0] + ' ' + getTime({ timezone: 'America/La_Paz' }))} where 
-        id= ${pool.escape(idusuario)}
-        `);
+        // Actualizamos último acceso
+        await pool.query(
+          `update usuarios SET ultimo_acceso = ? where id = ?`,
+          [`${fechaFormateada} ${horaActual}`, idusuario]
+        );
+
         return res.json({
+          idSesion: sesion.insertId,
           id_: idusuario,
           moneda: result[0].moneda,
           token: token,
@@ -124,14 +136,14 @@ rutas.get('/', async (req, res) => {
           msg: 'Acceso correcto',
         });
       } else {
-        return res.json({ msg: 'Intente nuevamente ', ok: false });
+        return res.json({ msg: 'Error al registrar sesión', ok: false });
       }
     } else {
-      return res.json({ msg: 'El usuario no existe !', ok: false });
+      return res.json({ msg: 'Credenciales incorrectas o usuario inactivo', ok: false });
     }
   } catch (error) {
-    console.log(error);
-    return res.json({ msg: 'El servidor no responde !', ok: false });
+    console.error("Error en login:", error);
+    return res.json({ msg: 'Error interno del servidor', ok: false });
   }
 });
 
@@ -144,7 +156,7 @@ rutas.post('/logout', (req, res) => {
       )} `;
       pool.query(sql);
     }
-  } catch (error) {}
+  } catch (error) { }
 });
 
 //VERIFICACION DE LA SESION QUE ESTA ALMACENADA EN LA BD

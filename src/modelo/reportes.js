@@ -316,7 +316,7 @@ export class Reportes {
       const [rows] = await pool.query(sql, [entidad]);
       return rows;
     } catch (error) {
-      console.error('Error al listar tipos auxiliares:', error);
+      console.error('Error al listar tipos auxiliares:', error); 
       throw error;
     }
   };
@@ -330,9 +330,9 @@ export class Reportes {
             SUM(ingreso) as total_ingresos,
             SUM(egreso) as total_gastos
         FROM (
-            SELECT i.fecha_ingreso as fecha, i.monto as ingreso, 0 as egreso FROM ingresos i inner join tramites t on t.id = i.id_tramite where t.id_entidad = ? and t.id_moneda = ? and i.estado = 2
+            SELECT i.fecha_ingreso as fecha, i.monto as ingreso, 0 as egreso FROM ingresos i inner join tramites t on t.id = i.id_tramite where t.id_entidad = ? and t.id_moneda = ? and i.estado = 2 and t.eliminado = 1
             UNION ALL
-            SELECT s.fecha_despacho as fecha, 0 as ingreso, s.monto as egreso FROM salidas s inner join tramites t on t.id = s.id_tramite where t.id_entidad = ? and t.id_moneda = ?
+            SELECT s.fecha_despacho as fecha, 0 as ingreso, s.monto as egreso FROM salidas s inner join tramites t on t.id = s.id_tramite where t.id_entidad = ? and t.id_moneda = ? and s.estado = 3 and t.eliminado = 1
         ) as movimientos
         GROUP BY anio, mes
         ORDER BY anio ASC, mes ASC`;

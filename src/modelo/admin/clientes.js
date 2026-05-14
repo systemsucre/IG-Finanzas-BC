@@ -7,19 +7,25 @@ export class Cliente {
     try {
       const sql = `
         SELECT 
-            id, 
-            nombre, 
-            ap1, 
-            ap2,
-            CONCAT(nombre, ' ', ap1, ' ', IFNULL(ap2, '')) AS nombre_completo,
-            ci, 
-            celular, 
-            direccion, 
-            estado, 
-            created_at,
-            modified_at,
-            usuario
-        FROM clientes  where id_entidad = ?
+            c.id, 
+            c.nombre, 
+            c.ap1, 
+            c.ap2,
+            CONCAT(c.nombre, ' ', c.ap1, ' ', IFNULL(c.ap2, '')) AS nombre_completo,
+            c.ci, 
+            c.celular, 
+            c.direccion, 
+            c.estado, 
+            c.created_at,
+            c.modified_at,
+            c.usuario,
+            sum(s.monto) as total_ingresos
+        FROM clientes  c
+        inner join ingresos s on c.id = s.id_cliente
+        
+        where id_entidad = ?
+
+        group by c.id
         ORDER BY id DESC `;
 
       const [rows] = await pool.query(sql,[entidad]);

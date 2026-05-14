@@ -22,6 +22,31 @@ rutas.post("/ver", async (req, res) => {
     }
 })
 
+
+
+rutas.post("/sesiones", async (req, res) => {
+    // console.log(req.body.usuario, 'mi perfil')
+    try {
+        const resultado = await usuarios.miSesiones(req.body.usuario)
+        return res.json({ ok: true, data: resultado })
+    } catch (error) {
+        console.log(error)
+        return res.json({ error: 500, msg: error.sqlMessage });
+    }
+})
+
+
+rutas.post("/eliminarSesion", async (req, res) => {
+    // console.log(req.body.usuario, 'mi perfil')
+    try {
+        const resultado = await usuarios.eliminarSesion(req.body.id)
+        return res.json({ ok: true, data: resultado })  
+    } catch (error) {
+        console.log(error)
+        return res.json({ error: 500, msg: error.sqlMessage });
+    }
+})
+
 rutas.post("/cambiarMiContrasena", cambiarMiContraseña, async (req, res) => {
     try {
         const { pass, pass1, fecha_, usuario, datosAuditoriaExtra } = req.body;

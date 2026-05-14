@@ -167,10 +167,10 @@ export class Reportes {
         ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
 
         s.estado = 3 
-        AND s.fecha_despacho BETWEEN ${pool.escape(desde+' 00:00:00' )} AND ${pool.escape(hasta+' 23:59:59')} and t.eliminado = 1
+        AND s.fecha_despacho BETWEEN ${pool.escape(desde + ' 00:00:00')} AND ${pool.escape(hasta + ' 23:59:59')} and t.eliminado = 1
         ORDER BY s.numero ASC`;
     const [rows] = await pool.query(sql);
-    console.log(sql , ' filas de salidas para Excel');
+    console.log(sql, ' filas de salidas para Excel');
     return rows;
   };
 
@@ -192,7 +192,7 @@ export class Reportes {
 
         ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
 
-        i.fecha_ingreso BETWEEN ${pool.escape(desde+' 00:00:00' )} AND ${pool.escape(hasta+' 23:59:59')} and t.eliminado = 1 and i.estado = 2 
+        i.fecha_ingreso BETWEEN ${pool.escape(desde + ' 00:00:00')} AND ${pool.escape(hasta + ' 23:59:59')} and t.eliminado = 1 and i.estado = 2 
         ORDER BY i.numero ASC`;
     const [rows] = await pool.query(sql);
     return rows;
@@ -232,8 +232,8 @@ export class Reportes {
                 SELECT id_tramite, SUM(monto) as monto_total 
                 FROM ingresos 
                 WHERE estado = 2 and
-                ${desde ? ` AND fecha_ingreso >= ${pool.escape(desde+' 00:00:00')}` : ''}
-                ${hasta ? ` AND fecha_ingreso <= ${pool.escape(hasta+' 23:59:59')}` : ''}
+                ${desde ? ` AND fecha_ingreso >= ${pool.escape(desde + ' 00:00:00')}` : ''}
+                ${hasta ? ` AND fecha_ingreso <= ${pool.escape(hasta + ' 23:59:59')}` : ''}
                 GROUP BY id_tramite
             ) i ON t.id = i.id_tramite
 
@@ -242,8 +242,8 @@ export class Reportes {
                 SELECT id_tramite, SUM(monto) as monto_total 
                 FROM salidas 
                 WHERE estado = 3 
-                ${desde ? ` AND fecha_despacho >= ${pool.escape(desde+' 00:00:00' )}` : ''}
-                ${hasta ? ` AND fecha_despacho <= ${pool.escape(hasta+' 23:59:59')}` : ''}
+                ${desde ? ` AND fecha_despacho >= ${pool.escape(desde + ' 00:00:00')}` : ''}
+                ${hasta ? ` AND fecha_despacho <= ${pool.escape(hasta + ' 23:59:59')}` : ''}
                 GROUP BY id_tramite
             ) s ON t.id = s.id_tramite
 
@@ -316,7 +316,7 @@ export class Reportes {
       const [rows] = await pool.query(sql, [entidad]);
       return rows;
     } catch (error) {
-      console.error('Error al listar tipos auxiliares:', error); 
+      console.error('Error al listar tipos auxiliares:', error);
       throw error;
     }
   };
@@ -341,4 +341,50 @@ export class Reportes {
     // console.log(rows, ' datos para la IA con fecha corregida');
     return rows;
   };
+
+
+
+  listarCajas = async (entidad) => {
+    try {
+      const sql = `SELECT * FROM tramites where  eliminado = 1 and id_entidad = ?`;
+      const [rows] = await pool.query(sql, [entidad]);
+      return rows;
+    } catch (error) {
+      console.error("Error al listar tipos auxiliares:", error);
+      throw error;
+    }
+  };
+
+  listarClientes = async (entidad) => {
+    try {
+      const sql = `SELECT * FROM clientes where  estado = 1 and id_entidad = ?`;
+      const [rows] = await pool.query(sql, [entidad]);
+      return rows;
+    } catch (error) {
+      console.error("Error al listar tipos auxiliares:", error);
+      throw error;
+    }
+  };
+  listarUsuarios = async (entidad) => {
+    try {
+      const sql = `SELECT * FROM usuarios where  estado = 1 and id_entidad = ?`;
+      const [rows] = await pool.query(sql, [entidad]);
+      return rows;
+    } catch (error) {
+      console.error("Error al listar tipos auxiliares:", error);
+      throw error;
+    }
+  };
+
+  listarTiposTramites = async (entidad) => {
+    try {
+      const sql = `SELECT * FROM tipo_tramites where  estado = 1 and id_entidad = ?`;
+      const [rows] = await pool.query(sql, [entidad]);
+      return rows;
+    } catch (error) {
+      console.error("Error al listar tipos auxiliares:", error);
+      throw error;
+    }
+  };
+
 }

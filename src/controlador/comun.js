@@ -141,6 +141,54 @@ rutas.post("/listar-cajas", async (req, res) => {
   }
 });
 
+
+rutas.post("/listar-cajas", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+
+    const resultado = await reportes.listarCajas(req.body.id_entidadS);
+    return res.json({ data: resultado, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
+  }
+});
+
+rutas.post("/listar-clientes", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+
+    const resultado = await reportes.listarClientes(req.body.id_entidadS);
+    return res.json({ data: resultado, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
+  }
+});
+
+rutas.post("/listar-usuarios", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+
+    const resultado = await reportes.listarUsuarios(req.body.id_entidadS);
+    return res.json({ data: resultado, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
+  }
+});
+rutas.post("/listar-tipos-tramites", async (req, res) => {
+  // console.log('usuaio erlinda')
+  try {
+
+    const resultado = await reportes.listarTiposTramites(req.body.id_entidadS);
+    return res.json({ data: resultado, ok: true });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ ok: false, msg: "Error al listar trámites" });
+  }
+});
+
 rutas.post("/historico-ia", async (req, res) => {
   // console.log('usuaio erlinda')
   try {

@@ -158,7 +158,7 @@ export class Ingresos {
         LEFT JOIN usuarios u ON i.usuario = u.id
         where t.id_entidad = ? ${id_tramite ? 'and t.id = ?' : ''} and (i.estado = 2 or i.estado = 3)
         ORDER BY i.fecha_ingreso DESC
-      `;
+      `;  
       const [rows] = await pool.query(sql, [entidad, id_tramite]);
       return rows; 
     } catch (error) {

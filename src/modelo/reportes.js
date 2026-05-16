@@ -188,9 +188,9 @@ export class Reportes {
         LEFT JOIN usuarios u ON i.usuario = u.id
         inner join clientes c on c.id = i.id_cliente
 
-        WHERE i.estado = 2  ${id ? `and i.id_tramite = ${pool.escape(id)} AND ` : ''} 
+        WHERE i.estado = 2  ${id ? `and i.id_tramite = ${pool.escape(id)} ` : ''} 
 
-        ${moneda ? `t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
+        ${moneda ? ` and t.id_moneda = ${pool.escape(moneda)} AND ` : ''}
 
         i.fecha_ingreso BETWEEN ${pool.escape(desde + ' 00:00:00')} AND ${pool.escape(hasta + ' 23:59:59')} and t.eliminado = 1 and i.estado = 2 
         ORDER BY i.numero ASC`;

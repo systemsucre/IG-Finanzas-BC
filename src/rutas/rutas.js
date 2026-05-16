@@ -19,6 +19,7 @@ import Tramite from '../controlador/admin/Tramites.js';
 // MOVIMIENTOS
 import salidas from '../controlador/movimientos/Salidas.js';
 import Ingresos from '../controlador/movimientos/ingresos.js';
+import BoletasIngresos from '../controlador/movimientos/boletasIngesos.js';
 import boleta from '../controlador/movimientos/boleta.js';
 
 import honorarios from '../controlador/movimientos/honorarios.js';
@@ -270,6 +271,7 @@ rutas.use('/tramites', verificacion, AdminGerenteCajero, Tramite);
 // MOVIMIENTOS
 rutas.use('/salidas', verificacion, salidas);
 rutas.use('/ingresos', verificacion, Ingresos);
+rutas.use('/boletas-ingreso', verificacion, BoletasIngresos);
 rutas.use('/boletas', verificacion, boleta);
 
 rutas.use('/honorarios', verificacion, AdminGerenteCajero, honorarios);
